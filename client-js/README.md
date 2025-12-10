@@ -120,8 +120,26 @@ try {
 
 ## Running Example
 
+### Using npm
 ```bash
+npm install
 npm start
+```
+
+### Using Makefile
+```bash
+# Quick start
+make install && make run
+
+# Or step by step
+make install
+make run
+
+# For development with auto-reload (if nodemon is available)
+make dev
+
+# See all available commands
+make help
 ```
 
 ## Project Structure

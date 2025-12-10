@@ -9,8 +9,8 @@ from broker_client import BrokerClient, APIError
 
 def main():
     # API keys (obtained from server)
-    api_key = "ak_WrXiA7I-VFolEYtZxnsqZTn-tB_f2zqSDEl4XQmqHqA"
-    secret_key = "NwTdHuVVfHA--40pyq_yqJBbscsbtPbD9jRhcU4tRFFQuYagqatzuhzrDu_-xd_q"
+    api_key = "key"
+    secret_key = "secret"
     base_url = "https://partner-api-dev.the-one.io"
 
     # Create API client

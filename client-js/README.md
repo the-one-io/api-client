@@ -39,8 +39,8 @@ The signature is created from a canonical string:
 ```javascript
 import { BrokerClient } from './broker-client.js';
 
-const apiKey = "ak_NCkCBuPwz-76ZuIufZesX3CU0AEtZ_S3yAUDwJtBTsk";
-const secretKey = "tMLS4vFaKLApc8WL6qvn-3Gu11agkJe31ijrftHUMFYOjnXlUIkkc1sUzHqNSWjt";
+const apiKey = "key";
+const secretKey = "secret";
 const baseURL = "http://localhost:8080";
 
 const client = new BrokerClient(apiKey, secretKey, baseURL);

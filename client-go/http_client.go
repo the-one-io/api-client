@@ -8,12 +8,12 @@ import (
 	"time"
 )
 
-// DefaultHTTPClient реализует интерфейс HTTPClient
+// DefaultHTTPClient implements HTTPClient interface
 type DefaultHTTPClient struct {
 	client *http.Client
 }
 
-// NewDefaultHTTPClient создает новый HTTP клиент
+// NewDefaultHTTPClient creates a new HTTP client
 func NewDefaultHTTPClient() *DefaultHTTPClient {
 	return &DefaultHTTPClient{
 		client: &http.Client{
@@ -22,7 +22,7 @@ func NewDefaultHTTPClient() *DefaultHTTPClient {
 	}
 }
 
-// Do выполняет HTTP запрос
+// Do executes HTTP request
 func (c *DefaultHTTPClient) Do(method, url string, headers map[string]string, body []byte) ([]byte, error) {
 	var reqBody io.Reader
 	if body != nil {
@@ -34,7 +34,7 @@ func (c *DefaultHTTPClient) Do(method, url string, headers map[string]string, bo
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
-	// Добавляем заголовки
+	// Add headers
 	for key, value := range headers {
 		req.Header.Set(key, value)
 	}
@@ -50,7 +50,7 @@ func (c *DefaultHTTPClient) Do(method, url string, headers map[string]string, bo
 		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
 
-	// Проверяем статус код
+	// Check status code
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return responseBody, fmt.Errorf("HTTP error %d: %s", resp.StatusCode, string(responseBody))
 	}

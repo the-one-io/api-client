@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-// BrokerClient представляет клиент для Broker Trading API
+// BrokerClient represents the client for Broker Trading API
 type BrokerClient struct {
 	apiKey    string
 	secretKey string
@@ -23,12 +23,12 @@ type BrokerClient struct {
 	client    HTTPClient
 }
 
-// HTTPClient интерфейс для HTTP клиента
+// HTTPClient interface for HTTP client
 type HTTPClient interface {
 	Do(method, url string, headers map[string]string, body []byte) ([]byte, error)
 }
 
-// NewBrokerClient создает новый экземпляр клиента
+// NewBrokerClient creates a new client instance
 func NewBrokerClient(apiKey, secretKey, baseURL string, httpClient HTTPClient) *BrokerClient {
 	return &BrokerClient{
 		apiKey:    apiKey,
@@ -38,19 +38,19 @@ func NewBrokerClient(apiKey, secretKey, baseURL string, httpClient HTTPClient) *
 	}
 }
 
-// Balance представляет баланс активов
+// Balance represents asset balance
 type Balance struct {
 	Asset  string `json:"asset"`
 	Total  string `json:"total"`
 	Locked string `json:"locked"`
 }
 
-// BalanceResponse представляет ответ на запрос балансов
+// BalanceResponse represents response for balances request
 type BalanceResponse struct {
 	Balances []Balance `json:"balances"`
 }
 
-// EstimateRequest представляет запрос на оценку свопа
+// EstimateRequest represents request for swap estimation
 type EstimateRequest struct {
 	From    string  `json:"from"`
 	To      string  `json:"to"`
@@ -59,7 +59,7 @@ type EstimateRequest struct {
 	Account *string `json:"account,omitempty"`
 }
 
-// RouteStep представляет шаг маршрута свопа
+// RouteStep represents a swap route step
 type RouteStep struct {
 	Exchange  string `json:"exchange"`
 	Pool      string `json:"pool"`
@@ -69,7 +69,7 @@ type RouteStep struct {
 	AmountOut string `json:"amount_out"`
 }
 
-// EstimateResponse представляет ответ на запрос оценки
+// EstimateResponse represents response for estimation request
 type EstimateResponse struct {
 	Route       []RouteStep `json:"route"`
 	Price       string      `json:"price"`
@@ -77,7 +77,7 @@ type EstimateResponse struct {
 	ExpiresAt   int64       `json:"expiresAt"`
 }
 
-// SwapRequest представляет запрос на выполнение свопа
+// SwapRequest represents request for executing a swap
 type SwapRequest struct {
 	From          string  `json:"from"`
 	To            string  `json:"to"`
@@ -87,13 +87,13 @@ type SwapRequest struct {
 	ClientOrderID *string `json:"clientOrderId,omitempty"`
 }
 
-// SwapResponse представляет ответ на запрос свопа
+// SwapResponse represents response for swap request
 type SwapResponse struct {
 	OrderID string `json:"orderId"`
 	Status  string `json:"status"`
 }
 
-// OrderStatusResponse представляет ответ статуса ордера
+// OrderStatusResponse represents order status response
 type OrderStatusResponse struct {
 	OrderID       string  `json:"orderId"`
 	Status        string  `json:"status"`
@@ -103,19 +103,19 @@ type OrderStatusResponse struct {
 	ClientOrderID *string `json:"clientOrderId,omitempty"`
 }
 
-// APIError представляет ошибку API
+// APIError represents API error
 type APIError struct {
 	Code      string `json:"code"`
 	Message   string `json:"message"`
 	RequestID string `json:"requestId"`
 }
 
-// Error реализует интерфейс error
+// Error implements error interface
 func (e *APIError) Error() string {
 	return fmt.Sprintf("API Error [%s]: %s (RequestID: %s)", e.Code, e.Message, e.RequestID)
 }
 
-// generateSignature создает HMAC-SHA256 подпись
+// generateSignature creates HMAC-SHA256 signature
 func (c *BrokerClient) generateSignature(method, pathWithQuery string, timestamp int64, nonce, bodySHA256 string) string {
 	canonicalString := fmt.Sprintf("%s\n%s\n%d\n%s\n%s",
 		strings.ToUpper(method),
@@ -125,7 +125,7 @@ func (c *BrokerClient) generateSignature(method, pathWithQuery string, timestamp
 		bodySHA256,
 	)
 
-	// Отладочная информация
+	// Debug information
 	fmt.Printf("Creating signature:\n")
 	fmt.Printf("Method: %s\n", strings.ToUpper(method))
 	fmt.Printf("Path: %s\n", pathWithQuery)
@@ -144,20 +144,20 @@ func (c *BrokerClient) generateSignature(method, pathWithQuery string, timestamp
 	return signature
 }
 
-// hashBody создает SHA256 хеш тела запроса
+// hashBody creates SHA256 hash of request body
 func hashBody(body []byte) string {
 	hash := sha256.Sum256(body)
 	return hex.EncodeToString(hash[:])
 }
 
-// generateNonce создает уникальный nonce
+// generateNonce creates unique nonce
 func generateNonce() string {
 	return fmt.Sprintf("%d_%d", time.Now().UnixNano(), rand.Int63())
 }
 
-// makeRequest выполняет аутентифицированный запрос к API
+// makeRequest makes authenticated request to API
 func (c *BrokerClient) makeRequest(ctx context.Context, method, path string, body []byte) ([]byte, error) {
-	timestamp := time.Now().UnixMilli() // Используем UnixMilli() как в тесте
+	timestamp := time.Now().UnixMilli() // Using UnixMilli() as in the test
 	nonce := generateNonce()
 	bodySHA256 := hashBody(body)
 
@@ -180,7 +180,7 @@ func (c *BrokerClient) makeRequest(ctx context.Context, method, path string, bod
 	return responseBody, nil
 }
 
-// checkAPIError проверяет, является ли ответ ошибкой API
+// checkAPIError checks if response is an API error
 func checkAPIError(responseBody []byte) error {
 	var apiErr APIError
 	if err := json.Unmarshal(responseBody, &apiErr); err == nil && apiErr.Code != "" {
@@ -189,7 +189,7 @@ func checkAPIError(responseBody []byte) error {
 	return nil
 }
 
-// GetBalances получает балансы пользователя
+// GetBalances gets user balances
 func (c *BrokerClient) GetBalances(ctx context.Context) (*BalanceResponse, error) {
 	responseBody, err := c.makeRequest(ctx, "GET", "/api/v1/balances", nil)
 	if err != nil {
@@ -208,7 +208,7 @@ func (c *BrokerClient) GetBalances(ctx context.Context) (*BalanceResponse, error
 	return &response, nil
 }
 
-// EstimateSwap получает оценку свопа
+// EstimateSwap gets swap estimation
 func (c *BrokerClient) EstimateSwap(ctx context.Context, req *EstimateRequest) (*EstimateResponse, error) {
 	body, err := json.Marshal(req)
 	if err != nil {
@@ -232,14 +232,14 @@ func (c *BrokerClient) EstimateSwap(ctx context.Context, req *EstimateRequest) (
 	return &response, nil
 }
 
-// Swap выполняет своп
+// Swap executes swap
 func (c *BrokerClient) Swap(ctx context.Context, req *SwapRequest, idempotencyKey string) (*SwapResponse, error) {
 	body, err := json.Marshal(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
 	}
 
-	timestamp := time.Now().UnixMilli() // Используем UnixMilli() как в тесте
+	timestamp := time.Now().UnixMilli() // Using UnixMilli() as in the test
 	nonce := generateNonce()
 	bodySHA256 := hashBody(body)
 
@@ -272,7 +272,7 @@ func (c *BrokerClient) Swap(ctx context.Context, req *SwapRequest, idempotencyKe
 	return &response, nil
 }
 
-// GetOrderStatus получает статус ордера
+// GetOrderStatus gets order status
 func (c *BrokerClient) GetOrderStatus(ctx context.Context, orderID string, clientOrderID *string) (*OrderStatusResponse, error) {
 	path := fmt.Sprintf("/api/v1/orders/%s/status", orderID)
 	if clientOrderID != nil {
@@ -296,32 +296,32 @@ func (c *BrokerClient) GetOrderStatus(ctx context.Context, orderID string, clien
 	return &response, nil
 }
 
-// Пример использования клиента
+// Example of client usage
 func main() {
-	// API ключи (полученные от сервера)
+	// API keys (obtained from server)
 	apiKey := "key"
 	secretKey := "secret"
 	baseURL := "https://partner-api-dev.the-one.io"
 
-	// Создаем HTTP клиент
+	// Create HTTP client
 	httpClient := NewDefaultHTTPClient()
 
-	// Создаем клиент API
+	// Create API client
 	client := NewBrokerClient(apiKey, secretKey, baseURL, httpClient)
 
 	ctx := context.Background()
 
-	// Пример 1: Получение балансов
-	fmt.Println("=== Получение балансов ===")
+	// Example 1: Getting balances
+	fmt.Println("=== Getting balances ===")
 	balances, err := client.GetBalances(ctx)
 	if err != nil {
-		log.Printf("Ошибка при получении балансов: %v\n", err)
+		log.Printf("Error getting balances: %v\n", err)
 	} else {
-		fmt.Printf("Балансы получены: %+v\n", balances)
+		fmt.Printf("Balances received: %+v\n", balances)
 	}
 
-	// Пример 2: Оценка свопа
-	fmt.Println("\n=== Оценка свопа ===")
+	// Example 2: Swap estimation
+	fmt.Println("\n=== Swap estimation ===")
 	estimateReq := &EstimateRequest{
 		From:   "USDT",
 		To:     "BTC",
@@ -330,14 +330,14 @@ func main() {
 
 	estimate, err := client.EstimateSwap(ctx, estimateReq)
 	if err != nil {
-		log.Printf("Ошибка при получении оценки: %v\n", err)
+		log.Printf("Error getting estimation: %v\n", err)
 	} else {
-		fmt.Printf("Оценка получена: %+v\n", estimate)
+		fmt.Printf("Estimation received: %+v\n", estimate)
 	}
 
-	// Пример 3: Выполнение свопа (только если есть оценка)
+	// Example 3: Executing swap (only if estimation exists)
 	if estimate != nil {
-		fmt.Println("\n=== Выполнение свопа ===")
+		fmt.Println("\n=== Executing swap ===")
 		swapReq := &SwapRequest{
 			From:        estimateReq.From,
 			To:          estimateReq.To,
@@ -348,18 +348,18 @@ func main() {
 		idempotencyKey := fmt.Sprintf("swap_%d", time.Now().UnixNano())
 		swapResponse, err := client.Swap(ctx, swapReq, idempotencyKey)
 		if err != nil {
-			log.Printf("Ошибка при выполнении свопа: %v\n", err)
+			log.Printf("Error executing swap: %v\n", err)
 		} else {
-			fmt.Printf("Своп создан: %+v\n", swapResponse)
+			fmt.Printf("Swap created: %+v\n", swapResponse)
 
-			// Пример 4: Проверка статуса ордера
+			// Example 4: Checking order status
 			<-time.After(time.Second)
-			fmt.Println("\n=== Проверка статуса ордера ===")
+			fmt.Println("\n=== Checking order status ===")
 			orderStatus, err := client.GetOrderStatus(ctx, swapResponse.OrderID, nil)
 			if err != nil {
-				log.Printf("Ошибка при получении статуса ордера: %v\n", err)
+				log.Printf("Error getting order status: %v\n", err)
 			} else {
-				fmt.Printf("Статус ордера: %+v\n", orderStatus)
+				fmt.Printf("Order status: %+v\n", orderStatus)
 			}
 		}
 	}

@@ -1,54 +1,54 @@
 # Broker Trading API - Python Client Example
 
-Этот пример демонстрирует, как использовать Broker Trading API с помощью Python клиента.
+This example demonstrates how to use the Broker Trading API with a Python client.
 
-## Установка
+## Installation
 
 ```bash
 cd examples/client-py
 pip install -r requirements.txt
 ```
 
-Или с использованием виртуального окружения (рекомендуется):
+Or using virtual environment (recommended):
 
 ```bash
 cd examples/client-py
 python -m venv venv
-source venv/bin/activate  # На Windows: venv\Scripts\activate
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-## Описание
+## Description
 
-Клиент реализует все основные методы API:
-- **GET /api/v1/balances** - получение балансов пользователя
-- **POST /api/v1/estimate** - получение оценки свопа
-- **POST /api/v1/swap** - выполнение свопа (с поддержкой идемпотентности)
-- **GET /api/v1/orders/{id}/status** - получение статуса ордера
+The client implements all main API methods:
+- **GET /api/v1/balances** - get user balances
+- **POST /api/v1/estimate** - get swap estimation
+- **POST /api/v1/swap** - execute swap (with idempotency support)
+- **GET /api/v1/orders/{id}/status** - get order status
 
-## Аутентификация
+## Authentication
 
-API использует HMAC-SHA256 аутентификацию со следующими заголовками:
-- `X-API-KEY` - API ключ
-- `X-API-TIMESTAMP` - временная метка в миллисекундах
-- `X-API-NONCE` - уникальное значение nonce
-- `X-API-SIGN` - HMAC-SHA256 подпись
+API uses HMAC-SHA256 authentication with the following headers:
+- `X-API-KEY` - API key
+- `X-API-TIMESTAMP` - timestamp in milliseconds
+- `X-API-NONCE` - unique nonce value
+- `X-API-SIGN` - HMAC-SHA256 signature
 
-### Формат подписи
+### Signature Format
 
-Подпись создается из канонической строки:
+The signature is created from a canonical string:
 ```
 <HTTP_METHOD>\n<PATH_WITH_QUERY>\n<TIMESTAMP_MS>\n<NONCE>\n<BODY_SHA256_HEX>
 ```
 
-## Использование
+## Usage
 
-### Быстрый старт
+### Quick Start
 
 ```python
 from broker_client import BrokerClient, APIError
 
-# Настройка клиента
+# Client setup
 api_key = "ak_NCkCBuPwz-76ZuIufZesX3CU0AEtZ_S3yAUDwJtBTsk"
 secret_key = "tMLS4vFaKLApc8WL6qvn-3Gu11agkJe31ijrftHUMFYOjnXlUIkkc1sUzHqNSWjt"
 base_url = "http://localhost:8080"
@@ -56,21 +56,21 @@ base_url = "http://localhost:8080"
 client = BrokerClient(api_key, secret_key, base_url)
 ```
 
-### Получение балансов
+### Getting Balances
 
 ```python
 try:
     balances = client.get_balances()
-    print(f"Найдено {len(balances)} активов:")
+    print(f"Found {len(balances)} assets:")
     for balance in balances:
-        print(f"  {balance.asset}: {balance.total} (заблокировано: {balance.locked})")
+        print(f"  {balance.asset}: {balance.total} (locked: {balance.locked})")
 except APIError as e:
-    print(f"Ошибка API: {e}")
+    print(f"API Error: {e}")
 except Exception as e:
-    print(f"Сетевая ошибка: {e}")
+    print(f"Network Error: {e}")
 ```
 
-### Оценка свопа
+### Swap Estimation
 
 ```python
 try:
@@ -78,30 +78,30 @@ try:
         from_asset="ETH",
         to_asset="USDT", 
         amount="1.0",
-        network="ETH",  # опционально
-        account="0x742d35Cc6634C0532925a3b8D0c79FA0Fa2d1234"  # опционально
+        network="ETH",  # optional
+        account="0x742d35Cc6634C0532925a3b8D0c79FA0Fa2d1234"  # optional
     )
     
-    print("Оценка получена:")
-    print(f"  Цена: {estimate['price']}")
-    print(f"  Ожидаемый выход: {estimate['expectedOut']}")
-    print(f"  Истекает в: {estimate['expiresAt']}")
+    print("Estimate received:")
+    print(f"  Price: {estimate['price']}")
+    print(f"  Expected Out: {estimate['expectedOut']}")
+    print(f"  Expires At: {estimate['expiresAt']}")
     
-    # Информация о маршруте
+    # Route information
     for i, step in enumerate(estimate['route']):
-        print(f"  Шаг {i+1}: {step['exchange']} - {step['fromAsset']} -> {step['toAsset']}")
+        print(f"  Step {i+1}: {step['exchange']} - {step['fromAsset']} -> {step['toAsset']}")
         
 except APIError as e:
-    print(f"Ошибка API: {e}")
+    print(f"API Error: {e}")
 ```
 
-### Выполнение свопа
+### Executing Swap
 
 ```python
 import time
 
 try:
-    # Уникальный ключ идемпотентности
+    # Unique idempotency key
     idempotency_key = f"swap_{int(time.time() * 1000)}_{hash('unique_string') % 1000000}"
     
     swap_response = client.swap(
@@ -111,60 +111,60 @@ try:
         account="0x742d35Cc6634C0532925a3b8D0c79FA0Fa2d1234",
         slippage_bps=30,
         idempotency_key=idempotency_key,
-        client_order_id="my_order_123"  # опционально
+        client_order_id="my_order_123"  # optional
     )
     
-    print("Своп создан:")
+    print("Swap created:")
     print(f"  Order ID: {swap_response['orderId']}")
     print(f"  Status: {swap_response['status']}")
     
 except APIError as e:
-    print(f"Ошибка API: {e}")
+    print(f"API Error: {e}")
 ```
 
-### Проверка статуса ордера
+### Checking Order Status
 
 ```python
 try:
     order_status = client.get_order_status(
         order_id=swap_response['orderId'],
-        client_order_id="my_order_123"  # опционально
+        client_order_id="my_order_123"  # optional
     )
     
-    print("Статус ордера:")
+    print("Order status:")
     print(f"  Order ID: {order_status['orderId']}")
     print(f"  Status: {order_status['status']}")
     print(f"  Filled Out: {order_status.get('filledOut', 'N/A')}")
     print(f"  TX Hash: {order_status.get('txHash', 'N/A')}")
     
 except APIError as e:
-    print(f"Ошибка API: {e}")
+    print(f"API Error: {e}")
 ```
 
-## Запуск примера
+## Running Example
 
 ```bash
 python example.py
 ```
 
-Или:
+Or:
 
 ```bash
 python3 example.py
 ```
 
-## Структура проекта
+## Project Structure
 
-- `example.py` - основной файл с примером использования
-- `broker_client.py` - класс клиента API с вспомогательными классами
-- `requirements.txt` - зависимости Python
-- `README.md` - данная документация
+- `example.py` - main file with usage example
+- `broker_client.py` - API client class with helper classes
+- `requirements.txt` - Python dependencies
+- `README.md` - this documentation
 
-## Классы и исключения
+## Classes and Exceptions
 
 ### BrokerClient
 
-Основной класс клиента со следующими методами:
+Main client class with the following methods:
 
 - `get_balances()` → `List[Balance]`
 - `estimate_swap(from_asset, to_asset, amount, network=None, account=None)` → `Dict`
@@ -173,80 +173,80 @@ python3 example.py
 
 ### Balance
 
-Класс для представления баланса актива:
+Class for representing asset balance:
 
 ```python
 class Balance:
     def __init__(self, asset: str, total: str, locked: str):
-        self.asset = asset      # Название актива
-        self.total = total      # Общий баланс
-        self.locked = locked    # Заблокированный баланс
+        self.asset = asset      # Asset name
+        self.total = total      # Total balance
+        self.locked = locked    # Locked balance
 ```
 
 ### APIError
 
-Исключение для ошибок API:
+Exception for API errors:
 
 ```python
 class APIError(Exception):
     def __init__(self, code: str, message: str, request_id: str = ""):
-        self.code = code           # Код ошибки
-        self.message = message     # Сообщение об ошибке
-        self.request_id = request_id  # ID запроса
+        self.code = code           # Error code
+        self.message = message     # Error message
+        self.request_id = request_id  # Request ID
 ```
 
-## Обработка ошибок
+## Error Handling
 
-Клиент автоматически обрабатывает ошибки API и HTTP:
+The client automatically handles API and HTTP errors:
 
 ```python
 try:
     result = client.get_balances()
-    print("Успех:", result)
+    print("Success:", result)
 except APIError as e:
-    # Ошибка от API сервера
+    # Error from API server
     print(f"API Error [{e.code}]: {e.message}")
     if e.request_id:
         print(f"Request ID: {e.request_id}")
 except requests.RequestException as e:
-    # Сетевая ошибка
+    # Network error
     print(f"Network Error: {e}")
 except Exception as e:
-    # Другие ошибки
+    # Other errors
     print(f"Unexpected Error: {e}")
 ```
 
-## Возможные статусы ордеров
+## Possible Order Statuses
 
-- `PENDING` - ордер в обработке
-- `FILLED` - ордер исполнен
-- `PARTIAL` - ордер частично исполнен
-- `CANCELED` - ордер отменен
-- `FAILED` - ордер провален
+- `PENDING` - order is processing
+- `FILLED` - order is executed
+- `PARTIAL` - order is partially executed
+- `CANCELED` - order is canceled
+- `FAILED` - order failed
 
-## Особенности Python реализации
+## Python Implementation Features
 
-### Типизация
-Код использует type hints для лучшей читаемости и IDE поддержки.
+### Type Hints
+The code uses type hints for better readability and IDE support.
 
-### Зависимости
-- `requests` - для HTTP запросов
-- Встроенные модули: `hashlib`, `hmac`, `json`, `time`, `random`, `base64`
+### Dependencies
+- `requests` - for HTTP requests
+- Built-in modules: `hashlib`, `hmac`, `json`, `time`, `random`, `base64`
 
-### Совместимость
-- Python 3.7+ (для поддержки type hints)
-- Все основные операционные системы
+### Compatibility
+- Python 3.7+ (for type hints support)
+- All major operating systems
 
-## Безопасность
+## Security
 
-- Никогда не храните API ключи в коде
-- Используйте переменные окружения для продакшена
-- Следите за уникальностью nonce values
-- Используйте HTTPS в продакшене
+- Never store API keys in code
+- Use environment variables for production
+- Ensure nonce uniqueness
+- Use HTTPS in production
 
-## Переменные окружения (рекомендуется)
+## Environment Variables (recommended)
 
-Создайте файл `.env` или используйте переменные окружения:
+Create a `.env` file or use environment variables:
 
 ```bash
 export BROKER_API_KEY="your_api_key_here"
@@ -254,7 +254,7 @@ export BROKER_SECRET_KEY="your_secret_key_here"
 export BROKER_BASE_URL="https://partner-api-dev.the-one.io"
 ```
 
-И используйте в коде:
+And use in code:
 
 ```python
 import os
@@ -264,33 +264,33 @@ secret_key = os.getenv('BROKER_SECRET_KEY')
 base_url = os.getenv('BROKER_BASE_URL')
 
 if not all([api_key, secret_key, base_url]):
-    raise ValueError("Отсутствуют необходимые переменные окружения")
+    raise ValueError("Missing required environment variables")
 
 client = BrokerClient(api_key, secret_key, base_url)
 ```
 
-## Логирование
+## Logging
 
-Для продакшена рекомендуется настроить логирование:
+For production, it's recommended to configure logging:
 
 ```python
 import logging
 
-# Настройка логирования
+# Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# В клиенте можно добавить логирование
+# Add logging to client
 try:
     result = client.get_balances()
-    logger.info(f"Получены балансы: {len(result)} активов")
+    logger.info(f"Retrieved balances: {len(result)} assets")
 except APIError as e:
-    logger.error(f"Ошибка API: {e}")
+    logger.error(f"API Error: {e}")
 ```
 
-## Асинхронная версия (aiohttp)
+## Asynchronous Version (aiohttp)
 
-Для асинхронного использования можно создать версию с `aiohttp`:
+For asynchronous usage, you can create a version with `aiohttp`:
 
 ```python
 import aiohttp
@@ -299,13 +299,13 @@ import asyncio
 class AsyncBrokerClient:
     async def get_balances(self):
         async with aiohttp.ClientSession() as session:
-            # Реализация с aiohttp
+            # Implementation with aiohttp
             pass
 ```
 
-## Тестирование
+## Testing
 
-Для тестирования можно использовать мокирование:
+For testing, you can use mocking:
 
 ```python
 import unittest
@@ -314,5 +314,5 @@ from unittest.mock import patch, MagicMock
 class TestBrokerClient(unittest.TestCase):
     @patch('broker_client.requests.Session')
     def test_get_balances(self, mock_session):
-        # Тестирование с мокированием
+        # Testing with mocking
         pass

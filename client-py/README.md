@@ -143,14 +143,37 @@ except APIError as e:
 
 ## Running Example
 
+### Using Python directly
 ```bash
-python example.py
+# Install dependencies first
+pip install -r requirements.txt
+
+# Run the example
+python3 example.py
 ```
 
-Or:
-
+### Using Makefile
 ```bash
-python3 example.py
+# Quick start
+make install && make run
+
+# Or step by step
+make install
+make run
+
+# Using virtual environment (recommended)
+make run-venv
+
+# See all available commands
+make help
+```
+
+### With virtual environment (manual setup)
+```bash
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt
+python example.py
 ```
 
 ## Project Structure

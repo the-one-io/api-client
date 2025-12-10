@@ -1,145 +1,243 @@
-# Broker Trading API - Go Client Example
+# Broker Trading API - Client Examples
 
-Этот пример демонстрирует, как использовать Broker Trading API с помощью Go клиента.
+This directory contains client examples for the Broker Trading API in various programming languages.
 
-## Описание
+## Available Clients
 
-Клиент реализует все основные методы API:
-- **GET /balances** - получение балансов пользователя
-- **POST /estimate** - получение оценки свопа
-- **POST /swap** - выполнение свопа (с поддержкой идемпотентности)
-- **GET /orders/{id}/status** - получение статуса ордера
+### [Go Client](./client/)
+- Original Go client implementation
+- Complete implementation of all API methods
+- HTTP client with timeouts
+- Detailed debug information
 
-## Аутентификация
+### [JavaScript/Node.js Client](client/client-js/)
+- Modern ES Modules JavaScript client
+- Asynchronous methods with Promise/async-await
+- Node.js 16+ support
+- Minimal dependencies (node-fetch)
 
-API использует HMAC-SHA256 аутентификацию со следующими заголовками:
-- `X-API-KEY` - API ключ
-- `X-API-TIMESTAMP` - временная метка в миллисекундах
-- `X-API-NONCE` - уникальное значение nonce
-- `X-API-SIGN` - HMAC-SHA256 подпись
+### [Python Client](client/client-py/)
+- Python client with type hints
+- Object-oriented design
+- Python 3.7+ support
+- Uses requests for HTTP calls
 
-### Формат подписи
+## Common Features
 
-Подпись создается из канонической строки:
+All clients implement the same API methods:
+
+| Method | Description | HTTP |
+|--------|-------------|------|
+| `getBalances()` / `get_balances()` | Get user balances | GET /api/v1/balances |
+| `estimateSwap()` / `estimate_swap()` | Get swap estimation | POST /api/v1/estimate |
+| `swap()` | Execute swap | POST /api/v1/swap |
+| `getOrderStatus()` / `get_order_status()` | Get order status | GET /api/v1/orders/{id}/status |
+
+## Authentication
+
+All clients use the same HMAC-SHA256 authentication scheme:
+
+### Headers
+- `X-API-KEY` - API key
+- `X-API-TIMESTAMP` - timestamp in milliseconds
+- `X-API-NONCE` - unique nonce value
+- `X-API-SIGN` - HMAC-SHA256 signature
+
+### Signature Format
+
+The signature is created from a canonical string:
 ```
 <HTTP_METHOD>\n<PATH_WITH_QUERY>\n<TIMESTAMP_MS>\n<NONCE>\n<BODY_SHA256_HEX>
 ```
 
-## Использование
+Where:
+- `HTTP_METHOD` - uppercase method (GET, POST)
+- `PATH_WITH_QUERY` - path with query parameters
+- `TIMESTAMP_MS` - timestamp in milliseconds
+- `NONCE` - unique value in format `{nanoseconds}_{random}`
+- `BODY_SHA256_HEX` - SHA256 hash of request body in hex format
 
-### Настройка
+## Quick Start
 
-```go
-apiKey := "ak_NCkCBuPwz-76ZuIufZesX3CU0AEtZ_S3yAUDwJtBTsk"
-secretKey := "tMLS4vFaKLApc8WL6qvn-3Gu11agkJe31ijrftHUMFYOjnXlUIkkc1sUzHqNSWjt"
-baseURL := "http://localhost:8080"
-
-httpClient := NewDefaultHTTPClient()
-client := NewBrokerClient(apiKey, secretKey, baseURL, httpClient)
-```
-
-### Получение балансов
-
-```go
-balances, err := client.GetBalances(ctx)
-if err != nil {
-    log.Fatal(err)
-}
-
-fmt.Printf("Балансы: %+v\n", balances)
-```
-
-### Оценка свопа
-
-```go
-estimateReq := &EstimateRequest{
-    From:        "ETH",
-    To:          "USDT", 
-    Amount:      "1.0",
-    SlippageBps: 30,
-    Network:     "ETH",
-}
-
-estimate, err := client.EstimateSwap(ctx, estimateReq)
-if err != nil {
-    log.Fatal(err)
-}
-
-fmt.Printf("Оценка: %+v\n", estimate)
-```
-
-### Выполнение свопа
-
-```go
-swapReq := &SwapRequest{
-    EstimateID: estimate.ID, // Получен из предыдущей оценки
-    From:       "ETH",
-    To:         "USDT",
-    Amount:     "1.0",
-    Account:    "0x742d35Cc6634C0532925a3b8D0c79FA0Fa2d1234",
-}
-
-// Важно: используйте уникальный ключ идемпотентности для каждого свопа
-idempotencyKey := fmt.Sprintf("swap_%d", time.Now().UnixNano())
-
-swapResponse, err := client.Swap(ctx, swapReq, idempotencyKey)
-if err != nil {
-    log.Fatal(err)
-}
-
-fmt.Printf("Своп создан: %+v\n", swapResponse)
-```
-
-### Проверка статуса ордера
-
-```go
-orderStatus, err := client.GetOrderStatus(ctx, swapResponse.OrderID, nil)
-if err != nil {
-    log.Fatal(err)
-}
-
-fmt.Printf("Статус ордера: %+v\n", orderStatus)
-```
-
-## Запуск примера
-
+### Go
 ```bash
 cd examples/client
 go mod tidy
 go run .
 ```
 
-## Структура проекта
+### JavaScript
+```bash
+cd examples/client-js
+npm install
+npm start
+```
 
-- `main.go` - основной файл с клиентом и примером использования
-- `http_client.go` - HTTP клиент с поддержкой таймаутов
-- `go.mod` - модуль Go
+### Python
+```bash
+cd examples/client-py
+pip install -r requirements.txt
+python example.py
+```
 
-## Обработка ошибок
+## Configuration
 
-Клиент автоматически обрабатывает ошибки API и возвращает структурированные ошибки типа `APIError` с кодом, сообщением и ID запроса.
+All clients require similar configuration:
 
+```
+API Key: ak_WrXiA7I-VFolEYtZxnsqZTn-tB_f2zqSDEl4XQmqHqA
+Secret Key: NwTdHuVVfHA--40pyq_yqJBbscsbtPbD9jRhcU4tRFFQuYagqatzuhzrDu_-xd_q
+Base URL: https://partner-api-dev.the-one.io
+```
+
+> ⚠️ **Important**: These keys are for testing only. In production, use your own API keys and environment variables.
+
+## Usage Examples
+
+### Getting Balances
+
+**Go:**
 ```go
+balances, err := client.GetBalances(ctx)
 if err != nil {
-    if apiErr, ok := err.(*APIError); ok {
-        fmt.Printf("API Error: %s (%s)\n", apiErr.Message, apiErr.Code)
-    } else {
-        fmt.Printf("Network/Other Error: %v\n", err)
-    }
+    log.Fatal(err)
+}
+fmt.Printf("Balances: %+v\n", balances)
+```
+
+**JavaScript:**
+```javascript
+try {
+    const balances = await client.getBalances();
+    console.log('Balances:', balances);
+} catch (error) {
+    console.error('Error:', error.message);
 }
 ```
 
-## Возможные статусы ордеров
+**Python:**
+```python
+try:
+    balances = client.get_balances()
+    print(f"Balances: {balances}")
+except APIError as e:
+    print(f"Error: {e}")
+```
 
-- `PENDING` - ордер в обработке
-- `FILLED` - ордер исполнен
-- `PARTIAL` - ордер частично исполнен
-- `CANCELED` - ордер отменен
-- `FAILED` - ордер провален
+### Executing Swap
 
-## Безопасность
+**Go:**
+```go
+swapReq := &SwapRequest{
+    From:        "ETH",
+    To:          "USDT",
+    Amount:      "1.0",
+    SlippageBps: 30,
+}
+idempotencyKey := fmt.Sprintf("swap_%d", time.Now().UnixNano())
+response, err := client.Swap(ctx, swapReq, idempotencyKey)
+```
 
-- Никогда не храните API ключи в коде
-- Используйте переменные окружения для продакшена
-- Следите за уникальностью nonce values
-- Используйте HTTPS в продакшене
+**JavaScript:**
+```javascript
+const swapRequest = {
+    from: "ETH",
+    to: "USDT",
+    amount: "1.0",
+    slippage_bps: 30
+};
+const idempotencyKey = `swap_${Date.now()}_${Math.random()}`;
+const response = await client.swap(swapRequest, idempotencyKey);
+```
+
+**Python:**
+```python
+idempotency_key = f"swap_{int(time.time() * 1000)}_{random.randint(0, 999999)}"
+response = client.swap(
+    from_asset="ETH",
+    to_asset="USDT",
+    amount="1.0",
+    account="0x...",
+    slippage_bps=30,
+    idempotency_key=idempotency_key
+)
+```
+
+## Error Handling
+
+All clients provide structured error handling:
+
+### API Errors
+```json
+{
+    "code": "INSUFFICIENT_BALANCE",
+    "message": "Insufficient balance for swap",
+    "requestId": "req_123456789"
+}
+```
+
+### Order Statuses
+- `PENDING` - order is processing
+- `FILLED` - order is executed
+- `PARTIAL` - order is partially executed
+- `CANCELED` - order is canceled
+- `FAILED` - order failed
+
+## Security
+
+### Recommendations
+1. **Never store API keys in code**
+2. **Use environment variables**
+3. **Use HTTPS in production**
+4. **Ensure nonce uniqueness**
+5. **Implement proper timeout and retry mechanisms**
+
+### Environment Variables
+
+Create a `.env` file:
+```
+BROKER_API_KEY=your_api_key_here
+BROKER_SECRET_KEY=your_secret_key_here
+BROKER_BASE_URL=https://partner-api-dev.the-one.io
+```
+
+## Client Differences
+
+| Feature | Go | JavaScript | Python |
+|---------|----|-----------|\--------|
+| Typing | Strong (structs) | Dynamic (JSDoc) | Type hints |
+| Async | Context/goroutines | Promises/async-await | Synchronous |
+| Dependencies | Stdlib only | node-fetch | requests |
+| Debug | Printf | console.log | print |
+| Testing | testing package | Jest/Mocha | unittest/pytest |
+
+## Testing
+
+For API testing, it's recommended to:
+
+1. **Use test API keys**
+2. **Test with small amounts**
+3. **Verify idempotency keys**
+4. **Test error handling**
+
+### Test Environment
+```
+Base URL: https://partner-api-dev.the-one.io
+Network: Testnet
+Minimum amount: 0.001
+```
+
+## Support and Documentation
+
+- **API Documentation**: [Swagger UI](https://partner-api-dev.the-one.io/docs)
+- **OpenAPI Spec**: `docs/swagger.yaml`
+- **Postman Collection**: Available on request
+- **Support**: Through GitLab issues
+
+## License
+
+All clients are provided under MIT license. See LICENSE file for details.
+
+---
+
+**Note**: These examples are for API demonstration purposes. In production, additional error handling, logging, monitoring, and other production-ready features should be added.

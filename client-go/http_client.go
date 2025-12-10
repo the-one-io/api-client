@@ -1,4 +1,4 @@
-package main
+package client_go
 
 import (
 	"bytes"

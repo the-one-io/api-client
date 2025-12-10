@@ -1,6 +1,7 @@
 package main
 
 import (
+	"broker-trading-client-example"
 	"context"
 	"crypto/hmac"
 	"crypto/sha256"
@@ -304,7 +305,7 @@ func main() {
 	baseURL := "https://partner-api-dev.the-one.io"
 
 	// Создаем HTTP клиент
-	httpClient := NewDefaultHTTPClient()
+	httpClient := broker_trading_client_example.NewDefaultHTTPClient()
 
 	// Создаем клиент API
 	client := NewBrokerClient(apiKey, secretKey, baseURL, httpClient)

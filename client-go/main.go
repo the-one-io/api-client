@@ -125,17 +125,11 @@ func (c *BrokerClient) generateSignature(method, pathWithQuery string, timestamp
 		bodySHA256,
 	)
 
-	// Debug information
-	fmt.Printf("Creating signature:\n")
-	fmt.Printf("Method: %s\n", strings.ToUpper(method))
-	fmt.Printf("Path: %s\n", pathWithQuery)
-	fmt.Printf("Timestamp: %d\n", timestamp)
-	fmt.Printf("Nonce: %s\n", nonce)
-	fmt.Printf("BodySHA256: %s\n", bodySHA256)
-	fmt.Printf("CanonicalString: %q\n", canonicalString)
-
 	hash := sha256.Sum256([]byte(c.secretKey))
-	mac := hmac.New(sha256.New, []byte(base64.URLEncoding.EncodeToString(hash[:])))
+	secretKeyBase64 := base64.URLEncoding.EncodeToString(hash[:])
+	hmacKey := []byte(secretKeyBase64)
+
+	mac := hmac.New(sha256.New, hmacKey)
 	mac.Write([]byte(canonicalString))
 	signature := hex.EncodeToString(mac.Sum(nil))
 	fmt.Printf("Signature: %s\n", signature)

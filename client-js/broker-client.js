@@ -56,25 +56,19 @@ export class BrokerClient {
             bodySHA256
         ].join('\n');
 
-        // Debug information
-        console.log('Creating signature:');
-        console.log(`Method: ${method.toUpperCase()}`);
-        console.log(`Path: ${pathWithQuery}`);
-        console.log(`Timestamp: ${timestamp}`);
-        console.log(`Nonce: ${nonce}`);
-        console.log(`BodySHA256: ${bodySHA256}`);
-        console.log(`CanonicalString: ${JSON.stringify(canonicalString)}`);
-
+        // Hash the secret key with SHA256
         const secretKeyHash = crypto.createHash('sha256').update(this.secretKey).digest();
-        const secretKeyBase64 = Buffer.from(secretKeyHash).toString('base64url');
+        // Encode as base64 (not base64url) to match Go implementation that includes padding
+        const secretKeyBase64 = Buffer.from(secretKeyHash).toString('base64')
+            .replace(/\+/g, '-')
+            .replace(/\//g, '_');
+        // In Go: []byte(base64.URLEncoding.EncodeToString(hash[:])) - this means bytes of the string, not decode
+        const hmacKey = Buffer.from(secretKeyBase64, 'utf8');
         
         const signature = crypto
-            .createHmac('sha256', secretKeyBase64)
+            .createHmac('sha256', hmacKey)
             .update(canonicalString)
             .digest('hex');
-
-        console.log(`Signature: ${signature}`);
-        console.log('---');
 
         return signature;
     }

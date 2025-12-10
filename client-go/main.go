@@ -1,7 +1,6 @@
 package main
 
 import (
-	"broker-trading-client-example"
 	"context"
 	"crypto/hmac"
 	"crypto/sha256"
@@ -300,12 +299,12 @@ func (c *BrokerClient) GetOrderStatus(ctx context.Context, orderID string, clien
 // Пример использования клиента
 func main() {
 	// API ключи (полученные от сервера)
-	apiKey := ""
-	secretKey := ""
+	apiKey := "key"
+	secretKey := "secret"
 	baseURL := "https://partner-api-dev.the-one.io"
 
 	// Создаем HTTP клиент
-	httpClient := broker_trading_client_example.NewDefaultHTTPClient()
+	httpClient := NewDefaultHTTPClient()
 
 	// Создаем клиент API
 	client := NewBrokerClient(apiKey, secretKey, baseURL, httpClient)

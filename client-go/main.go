@@ -290,8 +290,8 @@ func (c *BrokerClient) GetOrderStatus(ctx context.Context, orderID string, clien
 // Example of client usage
 func main() {
 	// API keys (obtained from server)
-	apiKey := "ak_WrXiA7I-VFolEYtZxnsqZTn-tB_f2zqSDEl4XQmqHqA"
-	secretKey := "NwTdHuVVfHA--40pyq_yqJBbscsbtPbD9jRhcU4tRFFQuYagqatzuhzrDu_-xd_q"
+	apiKey := "key"
+	secretKey := "secret"
 	baseURL := "http://127.0.0.1:8080"
 
 	// Create HTTP client
@@ -345,11 +345,20 @@ func main() {
 
 			// Example 4: Checking order status
 			fmt.Println("\n=== Checking order status ===")
-			orderStatus, err := client.GetOrderStatus(ctx, "32171", nil)
-			if err != nil {
-				log.Printf("Error getting order status: %v\n", err)
-			} else {
-				fmt.Printf("Order status: %+v\n", orderStatus)
+			for i := 0; i < 10; i++ {
+				orderStatus, err := client.GetOrderStatus(ctx, swapResponse.OrderID, nil)
+				if err != nil {
+					log.Printf("Error getting order status: %v\n", err)
+				} else {
+					if orderStatus.Status == "PENDING" {
+						fmt.Printf("Order %s is pending\n", orderStatus.OrderID)
+						<-time.After(10 * time.Second)
+						continue
+					}
+
+					fmt.Printf("Order status: %+v\n", orderStatus)
+					break
+				}
 			}
 		}
 	}

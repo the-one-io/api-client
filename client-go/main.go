@@ -132,9 +132,6 @@ func (c *BrokerClient) generateSignature(method, pathWithQuery string, timestamp
 	mac := hmac.New(sha256.New, hmacKey)
 	mac.Write([]byte(canonicalString))
 	signature := hex.EncodeToString(mac.Sum(nil))
-	fmt.Printf("Signature: %s\n", signature)
-	fmt.Printf("---\n")
-
 	return signature
 }
 
@@ -293,9 +290,9 @@ func (c *BrokerClient) GetOrderStatus(ctx context.Context, orderID string, clien
 // Example of client usage
 func main() {
 	// API keys (obtained from server)
-	apiKey := "key"
-	secretKey := "secret"
-	baseURL := "https://partner-api-dev.the-one.io"
+	apiKey := "ak_WrXiA7I-VFolEYtZxnsqZTn-tB_f2zqSDEl4XQmqHqA"
+	secretKey := "NwTdHuVVfHA--40pyq_yqJBbscsbtPbD9jRhcU4tRFFQuYagqatzuhzrDu_-xd_q"
+	baseURL := "http://127.0.0.1:8080"
 
 	// Create HTTP client
 	httpClient := NewDefaultHTTPClient()
@@ -347,9 +344,8 @@ func main() {
 			fmt.Printf("Swap created: %+v\n", swapResponse)
 
 			// Example 4: Checking order status
-			<-time.After(time.Second)
 			fmt.Println("\n=== Checking order status ===")
-			orderStatus, err := client.GetOrderStatus(ctx, swapResponse.OrderID, nil)
+			orderStatus, err := client.GetOrderStatus(ctx, "32171", nil)
 			if err != nil {
 				log.Printf("Error getting order status: %v\n", err)
 			} else {

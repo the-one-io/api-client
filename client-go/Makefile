@@ -4,15 +4,18 @@ BUILD_DIR := build
 
 GO_FILES := $(shell find . -type f -name '*.go')
 
-.PHONY: build run deps clean build-all build-windows build-macos build-linux
+.PHONY: build run run-ws deps clean build-all build-windows build-macos build-linux
 
 deps: ## Download dependencies
 	@go mod download
 	@go mod tidy
 	@go mod vendor
 
-run: ## Run the application
-	go run main.go
+run: ## Run the REST API client example
+	go run  http_client.go main.go
+
+run-ws: ## Run the WebSocket client example
+	go run ws_client.go ws_example.go ws_main.go
 
 clean:
 	@echo "🧹 Cleaning build directory..."

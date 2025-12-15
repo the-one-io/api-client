@@ -2,4 +2,4 @@ module broker-trading-client-example
 
 go 1.21
 
-require ()
+require github.com/gorilla/websocket v1.5.0

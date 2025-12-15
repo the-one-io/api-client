@@ -4,27 +4,31 @@ This directory contains client examples for the Broker Trading API in various pr
 
 ## Available Clients
 
-### [Go Client](./client/)
-- Original Go client implementation
-- Complete implementation of all API methods
+### [Go Client](./client-go/)
+- Complete REST and WebSocket API implementation
 - HTTP client with timeouts
+- WebSocket client with auto-reconnection
 - Detailed debug information
+- Gorilla WebSocket library
 
-### [JavaScript/Node.js Client](client/client-js/)
+### [JavaScript/Node.js Client](client-js/)
 - Modern ES Modules JavaScript client
-- Asynchronous methods with Promise/async-await
+- Asynchronous REST and WebSocket methods with Promise/async-await
 - Node.js 16+ support
-- Minimal dependencies (node-fetch)
+- Event-driven WebSocket client with auto-reconnection
+- Dependencies: node-fetch, ws
 
-### [Python Client](client/client-py/)
+### [Python Client](client-py/)
 - Python client with type hints
-- Object-oriented design
+- Object-oriented design for REST and WebSocket
+- Async/await WebSocket client
 - Python 3.7+ support
-- Uses requests for HTTP calls
+- Uses requests (REST) and websockets (WS)
 
 ## Common Features
 
-All clients implement the same API methods:
+### REST API Methods
+All clients implement the same REST API methods:
 
 | Method | Description | HTTP |
 |--------|-------------|------|
@@ -32,6 +36,20 @@ All clients implement the same API methods:
 | `estimateSwap()` / `estimate_swap()` | Get swap estimation | POST /api/v1/estimate |
 | `swap()` | Execute swap | POST /api/v1/swap |
 | `getOrderStatus()` / `get_order_status()` | Get order status | GET /api/v1/orders/{id}/status |
+
+### WebSocket API Methods
+All clients also support real-time WebSocket connections:
+
+| Method | Description | Purpose |
+|--------|-------------|---------|
+| `connect()` / `Connect()` | Establish WebSocket connection | Authentication and setup |
+| `subscribe()` / `Subscribe()` | Subscribe to data channels | Real-time updates |
+| `unsubscribe()` / `Unsubscribe()` | Unsubscribe from channels | Stop receiving updates |
+| `close()` / `Close()` | Close WebSocket connection | Cleanup resources |
+
+### Available WebSocket Channels
+- `balances` - Real-time balance updates
+- `orders:{orderId}` - Real-time order status updates
 
 ## Authentication
 

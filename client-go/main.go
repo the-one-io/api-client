@@ -314,8 +314,8 @@ func main() {
 	// Example 2: Swap estimation
 	fmt.Println("\n=== Swap estimation ===")
 	estimateReq := &EstimateRequest{
-		From:   "USDT",
-		To:     "BTC",
+		From:   "TRX",
+		To:     "USDT",
 		Amount: "10",
 	}
 
@@ -352,7 +352,7 @@ func main() {
 				} else {
 					if orderStatus.Status == "PENDING" {
 						fmt.Printf("Order %s is pending\n", orderStatus.OrderID)
-						<-time.After(10 * time.Second)
+						<-time.After(5 * time.Second)
 						continue
 					}
 

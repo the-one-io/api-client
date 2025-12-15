@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"log"
 	"math/rand"
@@ -271,12 +272,8 @@ func (ws *WSClient) EstimateSwap(amountIn, assetIn, assetOut string) error {
 		"assetOut": assetOut,
 	}
 
-	estimateMsg := WSMessage{
-		Op:   "estimate",
-		Data: estimateData,
-	}
-
-	return ws.sendMessage(&estimateMsg)
+	estimateMsg := ws.createSignedMessage("estimate", estimateData)
+	return ws.sendMessage(estimateMsg)
 }
 
 // DoSwap executes a swap operation via WebSocket
@@ -311,9 +308,51 @@ func (ws *WSClient) GetOrderStatus(orderID string) error {
 
 // GetBalances gets account balances via WebSocket
 func (ws *WSClient) GetBalances() error {
-	balancesMsg := WSMessage{
-		Op: "balances",
-	}
+	balancesMsg := ws.createSignedMessage("balances", nil)
+	return ws.sendMessage(balancesMsg)
+}
 
-	return ws.sendMessage(&balancesMsg)
+// createSignedMessage creates a signed message for operations that require authentication
+func (ws *WSClient) createSignedMessage(operation string, data interface{}) *WSMessage {
+	timestamp := time.Now().UnixMilli()
+	nonce := ws.generateNonce()
+
+	// For WebSocket operations, use the operation as the "method" and a path
+	method := "WS"
+	pathWithQuery := "/ws/v1/" + operation
+
+	// Convert data to JSON for body hash calculation
+	var bodyBytes []byte
+	if data != nil {
+		var err error
+		bodyBytes, err = json.Marshal(data)
+		if err != nil {
+			log.Printf("Error marshaling data: %v", err)
+			return &WSMessage{
+				Op:    operation,
+				Data:  data,
+				Error: "Failed to marshal data",
+			}
+		}
+	}
+	bodySHA256 := ws.hashBody(bodyBytes)
+
+	canonicalString := fmt.Sprintf("%s\n%s\n%d\n%s\n%s",
+		method, pathWithQuery, timestamp, nonce, bodySHA256)
+
+	hash := sha256.Sum256([]byte(ws.secretKey))
+	secretKeyBase64 := base64.URLEncoding.EncodeToString(hash[:])
+	hmacKey := []byte(secretKeyBase64)
+
+	mac := hmac.New(sha256.New, hmacKey)
+	mac.Write([]byte(canonicalString))
+	signature := hex.EncodeToString(mac.Sum(nil))
+
+	return &WSMessage{
+		Op:        operation,
+		Timestamp: timestamp,
+		Nonce:     nonce,
+		Signature: signature,
+		Data:      data,
+	}
 }

@@ -57,22 +57,29 @@ class BrokerWSClient:
         random_part = random.randint(0, 999_999)
         return f"{timestamp_ns}_{random_part}"
 
-    def generate_signature(self, timestamp: int, nonce: str) -> str:
+    def generate_signature(self, timestamp: int, nonce: str, operation: Optional[str] = None, data: Optional[Dict[str, Any]] = None) -> str:
         """
         Generate HMAC-SHA256 signature for WebSocket authentication
         
         Args:
             timestamp: Timestamp in milliseconds
             nonce: Unique nonce string
+            operation: Operation name (optional, for signed messages)
+            data: Message data (optional, for signed messages)
             
         Returns:
             HMAC-SHA256 signature in hex format
         """
         # For WebSocket auth, use the same signature format as REST API:
-        # Method: "WS", Path: "/ws/v1/stream", Body: empty (SHA256 of empty bytes)
+        # Method: "WS", Path: "/ws/v1/stream" or "/ws/v1/{operation}", Body: SHA256 of data
         method = "WS"
-        path_with_query = "/ws/v1/stream"
-        body_sha256 = hashlib.sha256(b'').hexdigest()
+        path_with_query = f"/ws/v1/{operation}" if operation else "/ws/v1/stream"
+        
+        # Calculate body hash
+        body_bytes = b''
+        if data is not None:
+            body_bytes = json.dumps(data, separators=(',', ':')).encode('utf-8')
+        body_sha256 = hashlib.sha256(body_bytes).hexdigest()
         
         canonical_string = "\n".join([method, path_with_query, str(timestamp), nonce, body_sha256])
         
@@ -88,6 +95,33 @@ class BrokerWSClient:
         ).hexdigest()
         
         return signature
+
+    def create_signed_message(self, operation: str, data: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """
+        Create a signed message for operations that require authentication
+        
+        Args:
+            operation: Operation name
+            data: Message data
+            
+        Returns:
+            Signed message dictionary
+        """
+        timestamp = int(time.time() * 1000)  # milliseconds
+        nonce = self.generate_nonce()
+        signature = self.generate_signature(timestamp, nonce, operation, data)
+        
+        message = {
+            'op': operation,
+            'ts': timestamp,
+            'nonce': nonce,
+            'sig': signature
+        }
+        
+        if data is not None:
+            message['data'] = data
+            
+        return message
 
     async def connect(self):
         """Connect to WebSocket server and authenticate"""
@@ -310,6 +344,79 @@ class BrokerWSClient:
             not self.websocket.closed and
             self.authenticated
         )
+
+    # Trading Operations
+
+    async def estimate_swap(self, amount_in: str, asset_in: str, asset_out: str):
+        """
+        Estimate a swap operation via WebSocket
+        
+        Args:
+            amount_in: Amount of input asset
+            asset_in: Input asset symbol
+            asset_out: Output asset symbol
+        """
+        if not self.authenticated:
+            raise Exception("Not authenticated")
+            
+        estimate_data = {
+            "amountIn": amount_in,
+            "assetIn": asset_in,
+            "assetOut": asset_out
+        }
+        
+        estimate_message = self.create_signed_message('estimate', estimate_data)
+        await self._send_message(estimate_message)
+        self.logger.info(f"Estimate swap request sent: {asset_in} -> {asset_out}")
+
+    async def do_swap(self, amount_in: str, asset_in: str, asset_out: str):
+        """
+        Execute a swap operation via WebSocket
+        
+        Args:
+            amount_in: Amount of input asset
+            asset_in: Input asset symbol
+            asset_out: Output asset symbol
+        """
+        if not self.authenticated:
+            raise Exception("Not authenticated")
+            
+        swap_data = {
+            "amountIn": amount_in,
+            "assetIn": asset_in,
+            "assetOut": asset_out
+        }
+        
+        swap_message = self.create_signed_message('swap', swap_data)
+        await self._send_message(swap_message)
+        self.logger.info(f"Swap request sent: {asset_in} -> {asset_out}")
+
+    async def get_order_status(self, order_id: str):
+        """
+        Get order status via WebSocket
+        
+        Args:
+            order_id: Order ID to query
+        """
+        if not self.authenticated:
+            raise Exception("Not authenticated")
+            
+        order_data = {
+            "id": order_id
+        }
+        
+        order_message = self.create_signed_message('order_status', order_data)
+        await self._send_message(order_message)
+        self.logger.info(f"Order status request sent for order: {order_id}")
+
+    async def get_balances(self):
+        """Get account balances via WebSocket"""
+        if not self.authenticated:
+            raise Exception("Not authenticated")
+            
+        balances_message = self.create_signed_message('balances', None)
+        await self._send_message(balances_message)
+        self.logger.info("Balances request sent")
 
     async def __aenter__(self):
         """Async context manager entry"""

@@ -1,41 +1,47 @@
 # WebSocket Client for JavaScript/Node.js
 
-WebSocket client для Broker Trading API на JavaScript/Node.js с поддержкой аутентификации и реального времени.
+WebSocket client for Broker Trading API in JavaScript/Node.js with authentication and real-time support.
 
-## Установка
+## Installation
 
 ```bash
 npm install
 ```
 
-## Зависимости
+## Dependencies
 
-- `ws` - WebSocket библиотека для Node.js
-- `node-fetch` - Для HTTP запросов (уже установлено для REST клиента)
+- `ws` - WebSocket library for Node.js
+- `node-fetch` - For HTTP requests (already installed for REST client)
 
-## Использование
+## Usage
 
-### Простое подключение
+### Simple Connection
 
 ```javascript
 import { BrokerWSClient } from './ws-client.js';
 
 async function main() {
-    // API ключи
+    // API keys
     const apiKey = 'your_api_key';
     const secretKey = 'your_secret_key';
     const wsURL = 'wss://api.example.com/ws';
     
-    // Создание клиента
+    // Create client
     const client = new BrokerWSClient(apiKey, secretKey, wsURL);
     
-    // Подключение
+    // Connect
     await client.connect();
     
-    // Подписка на баланс
+    // Subscribe to balances
     await client.subscribe('balances', (message) => {
         console.log('Balances update:', message.data);
     });
+    
+    // Trading operations
+    await client.getBalances();
+    await client.estimateSwap('100', 'ETH', 'USDT');
+    await client.doSwap('100', 'ETH', 'USDT');
+    await client.getOrderStatus('ord_12345678');
     
     // Graceful shutdown
     process.on('SIGINT', () => {
@@ -47,9 +53,9 @@ async function main() {
 main().catch(console.error);
 ```
 
-### Подписка на каналы
+### Channel Subscriptions
 
-#### Баланс пользователя
+#### User Balances
 
 ```javascript
 await client.subscribe('balances', (message) => {
@@ -57,7 +63,7 @@ await client.subscribe('balances', (message) => {
 });
 ```
 
-#### Статус ордера
+#### Order Status
 
 ```javascript
 const orderID = 'ord_12345678';
@@ -68,25 +74,55 @@ await client.subscribe(channel, (message) => {
 });
 ```
 
-### Обработка событий
+### Trading Operations
+
+#### Get Balances
 
 ```javascript
-// Аутентификация
+// Request current balances (signed message)
+await client.getBalances();
+```
+
+#### Estimate Swap
+
+```javascript
+// Estimate swap cost (signed message)
+await client.estimateSwap('100', 'ETH', 'USDT');
+```
+
+#### Execute Swap
+
+```javascript
+// Execute swap operation (signed message)
+await client.doSwap('100', 'ETH', 'USDT');
+```
+
+#### Check Order Status
+
+```javascript
+// Get order status (signed message)
+await client.getOrderStatus('ord_12345678');
+```
+
+### Event Handling
+
+```javascript
+// Authentication
 client.on('authenticated', () => {
     console.log('✅ Authenticated successfully');
 });
 
-// Отключение
+// Disconnection
 client.on('disconnected', ({ code, reason }) => {
     console.log(`❌ Disconnected: ${code} ${reason}`);
 });
 
-// Ошибки
+// Errors
 client.on('error', (error) => {
     console.error('❌ WebSocket error:', error.message);
 });
 
-// Подписки
+// Subscriptions
 client.on('subscribed', (channel) => {
     console.log(`✅ Subscribed to: ${channel}`);
 });
@@ -96,7 +132,7 @@ client.on('unsubscribed', (channel) => {
 });
 ```
 
-### Обработка ошибок
+### Error Handling
 
 ```javascript
 try {
@@ -112,7 +148,7 @@ function handleBalances(message) {
         return;
     }
     
-    // Обработка данных
+    // Process data
     console.log('Data:', message.data);
 }
 ```
@@ -127,7 +163,7 @@ class BrokerWSClient extends EventEmitter {
 }
 ```
 
-#### Методы
+#### Methods
 
 ##### constructor
 
@@ -135,12 +171,12 @@ class BrokerWSClient extends EventEmitter {
 new BrokerWSClient(apiKey, secretKey, wsURL)
 ```
 
-Создает новый WebSocket клиент.
+Creates a new WebSocket client.
 
-**Параметры:**
-- `apiKey` - API ключ
-- `secretKey` - Секретный ключ 
-- `wsURL` - URL WebSocket сервера
+**Parameters:**
+- `apiKey` - API key
+- `secretKey` - Secret key 
+- `wsURL` - WebSocket server URL
 
 ##### connect()
 
@@ -148,9 +184,9 @@ new BrokerWSClient(apiKey, secretKey, wsURL)
 async connect()
 ```
 
-Устанавливает соединение и проходит аутентификацию.
+Establishes connection and authenticates.
 
-**Возвращает:** `Promise<void>`
+**Returns:** `Promise<void>`
 
 ##### subscribe()
 
@@ -158,13 +194,13 @@ async connect()
 async subscribe(channel, handler)
 ```
 
-Подписывается на канал.
+Subscribes to a channel.
 
-**Параметры:**
-- `channel` - Название канала
-- `handler` - Функция обработчик сообщений
+**Parameters:**
+- `channel` - Channel name
+- `handler` - Message handler function
 
-**Возвращает:** `Promise<void>`
+**Returns:** `Promise<void>`
 
 ##### unsubscribe()
 
@@ -172,12 +208,65 @@ async subscribe(channel, handler)
 async unsubscribe(channel)
 ```
 
-Отменяет подписку на канал.
+Unsubscribes from a channel.
 
-**Параметры:**
-- `channel` - Название канала
+**Parameters:**
+- `channel` - Channel name
 
-**Возвращает:** `Promise<void>`
+**Returns:** `Promise<void>`
+
+##### getBalances()
+
+```javascript
+async getBalances()
+```
+
+Requests current account balances (signed message).
+
+**Returns:** `Promise<void>`
+
+##### estimateSwap()
+
+```javascript
+async estimateSwap(amountIn, assetIn, assetOut)
+```
+
+Estimates swap cost (signed message).
+
+**Parameters:**
+- `amountIn` - Amount of input asset
+- `assetIn` - Input asset symbol
+- `assetOut` - Output asset symbol
+
+**Returns:** `Promise<void>`
+
+##### doSwap()
+
+```javascript
+async doSwap(amountIn, assetIn, assetOut)
+```
+
+Executes swap operation (signed message).
+
+**Parameters:**
+- `amountIn` - Amount of input asset
+- `assetIn` - Input asset symbol
+- `assetOut` - Output asset symbol
+
+**Returns:** `Promise<void>`
+
+##### getOrderStatus()
+
+```javascript
+async getOrderStatus(orderID)
+```
+
+Gets order status (signed message).
+
+**Parameters:**
+- `orderID` - Order ID to query
+
+**Returns:** `Promise<void>`
 
 ##### close()
 
@@ -185,7 +274,7 @@ async unsubscribe(channel)
 close()
 ```
 
-Закрывает WebSocket соединение.
+Closes WebSocket connection.
 
 ##### isConnected()
 
@@ -193,39 +282,39 @@ close()
 isConnected()
 ```
 
-Проверяет состояние соединения.
+Checks connection status.
 
-**Возвращает:** `boolean`
+**Returns:** `boolean`
 
-#### События
+#### Events
 
-- `authenticated` - Когда клиент прошел аутентификацию
-- `disconnected` - Когда соединение разорвано
-- `error` - При возникновении ошибки 
-- `subscribed` - При успешной подписке на канал
-- `unsubscribed` - При отписке от канала
+- `authenticated` - When client is authenticated
+- `disconnected` - When connection is lost
+- `error` - On error occurrence 
+- `subscribed` - On successful channel subscription
+- `unsubscribed` - On channel unsubscription
 
-### Структура сообщений
+### Message Structure
 
 ```javascript
 const message = {
-    op: 'string',        // Операция (auth, subscribe, unsubscribe) 
-    ch: 'string',        // Канал
-    key: 'string',       // API ключ (только для аутентификации)
-    ts: 1640995200000,   // Timestamp в миллисекундах
-    nonce: 'string',     // Уникальный nonce
-    sig: 'string',       // HMAC подпись
-    data: {},            // Данные сообщения
-    error: 'string'      // Описание ошибки
+    op: 'string',        // Operation (auth, subscribe, unsubscribe, estimate, swap, order_status, balances) 
+    ch: 'string',        // Channel
+    key: 'string',       // API key (auth only)
+    ts: 1640995200000,   // Timestamp in milliseconds
+    nonce: 'string',     // Unique nonce
+    sig: 'string',       // HMAC signature
+    data: {},            // Message data
+    error: 'string'      // Error description
 };
 ```
 
-## Доступные каналы
+## Available Channels
 
 ### balances
-Получение обновлений баланса пользователя.
+Receives user balance updates.
 
-**Пример данных:**
+**Example data:**
 ```javascript
 {
   ch: 'balances',
@@ -240,9 +329,9 @@ const message = {
 ```
 
 ### orders:{orderId}
-Получение обновлений статуса конкретного ордера.
+Receives status updates for specific orders.
 
-**Пример данных:**
+**Example data:**
 ```javascript
 {
   ch: 'orders:ord_12345678',
@@ -255,31 +344,31 @@ const message = {
 }
 ```
 
-## Запуск примера
+## Running the Example
 
 ```bash
-# Запуск WebSocket примера
+# Run WebSocket example
 node ws-example.js
 
-# Или с ES модулями
+# Or with ES modules
 node --experimental-modules ws-example.js
 ```
 
-## Особенности
+## Features
 
-### Автоматическое переподключение
+### Automatic Reconnection
 
-Клиент автоматически переподключается при разрыве соединения с экспоненциальной задержкой:
+Client automatically reconnects on connection loss with exponential backoff:
 
 ```javascript
-// Настройки переподключения (по умолчанию)
+// Reconnection settings (defaults)
 client.maxReconnectAttempts = 5;
-client.reconnectDelay = 1000; // 1 секунда
+client.reconnectDelay = 1000; // 1 second
 ```
 
-### Асинхронная обработка
+### Asynchronous Processing
 
-Все методы возвращают промисы:
+All methods return promises:
 
 ```javascript
 try {
@@ -290,9 +379,9 @@ try {
 }
 ```
 
-### Event-driven архитектура
+### Event-driven Architecture
 
-Клиент наследует от EventEmitter для удобной обработки событий:
+Client extends EventEmitter for convenient event handling:
 
 ```javascript
 client.on('error', (error) => {
@@ -300,32 +389,32 @@ client.on('error', (error) => {
 });
 ```
 
-## Безопасность
+## Security
 
-- Все сообщения подписываются с использованием HMAC-SHA256
-- API ключи должны быть сохранены в безопасном месте
-- Рекомендуется использовать переменные окружения для ключей
+- All trading operation messages are signed using HMAC-SHA256
+- API keys should be stored securely
+- Environment variables are recommended for keys
 
 ```javascript
 const apiKey = process.env.BROKER_API_KEY;
 const secretKey = process.env.BROKER_SECRET_KEY;
 ```
 
-## Отладка
+## Debugging
 
-Включите дебаг логи для диагностики:
+Enable debug logs for diagnostics:
 
 ```javascript
-// Установка уровня логирования
+// Set logging level
 client.logger.setLevel('debug');
 
-// Или прослушивание всех событий
+// Or listen to all events
 client.on('response', (message) => {
     console.log('Server response:', message);
 });
 ```
 
-## Интеграция с существующими проектами
+## Integration with Existing Projects
 
 ### Express.js
 
@@ -342,13 +431,22 @@ app.get('/status', (req, res) => {
     });
 });
 
-// При старте сервера
+app.post('/swap', async (req, res) => {
+    try {
+        await wsClient.doSwap(req.body.amount, req.body.from, req.body.to);
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// On server start
 wsClient.connect().then(() => {
     console.log('WebSocket client ready');
 });
 ```
 
-### Как middleware
+### As Middleware
 
 ```javascript
 export function createWSMiddleware(apiKey, secretKey, wsURL) {
@@ -361,6 +459,10 @@ export function createWSMiddleware(apiKey, secretKey, wsURL) {
         
         subscribe: client.subscribe.bind(client),
         unsubscribe: client.unsubscribe.bind(client),
+        getBalances: client.getBalances.bind(client),
+        estimateSwap: client.estimateSwap.bind(client),
+        doSwap: client.doSwap.bind(client),
+        getOrderStatus: client.getOrderStatus.bind(client),
         
         close() {
             client.close();

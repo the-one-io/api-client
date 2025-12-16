@@ -1,47 +1,53 @@
 # WebSocket Client for Python
 
-WebSocket client для Broker Trading API на Python с поддержкой асинхронной обработки, аутентификации и реального времени.
+WebSocket client for Broker Trading API in Python with asynchronous processing, authentication and real-time support.
 
-## Установка
+## Installation
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## Зависимости
+## Dependencies
 
-- `websockets` - Асинхронная WebSocket библиотека для Python
-- `requests` - Для HTTP запросов (уже установлено для REST клиента)
+- `websockets` - Asynchronous WebSocket library for Python
+- `requests` - For HTTP requests (already installed for REST client)
 
-## Использование
+## Usage
 
-### Простое подключение
+### Simple Connection
 
 ```python
 import asyncio
 from broker_ws_client import BrokerWSClient
 
 async def main():
-    # API ключи
+    # API keys
     api_key = 'your_api_key'
     secret_key = 'your_secret_key'
     ws_url = 'wss://api.example.com/ws'
     
-    # Создание и подключение клиента
+    # Create and connect client
     async with BrokerWSClient(api_key, secret_key, ws_url) as client:
-        # Подписка на баланс
+        # Subscribe to balances
         await client.subscribe('balances', lambda msg: print(f"Balances: {msg['data']}"))
         
-        # Ожидание
-        await asyncio.sleep(60)  # Слушать 1 минуту
+        # Trading operations
+        await client.get_balances()
+        await client.estimate_swap('100', 'ETH', 'USDT')
+        await client.do_swap('100', 'ETH', 'USDT')
+        await client.get_order_status('ord_12345678')
+        
+        # Wait for activity
+        await asyncio.sleep(60)  # Listen for 1 minute
 
 if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-### Подписка на каналы
+### Channel Subscriptions
 
-#### Баланс пользователя
+#### User Balances
 
 ```python
 async def handle_balances(message):
@@ -50,7 +56,7 @@ async def handle_balances(message):
 await client.subscribe('balances', handle_balances)
 ```
 
-#### Статус ордера
+#### Order Status
 
 ```python
 order_id = 'ord_12345678'
@@ -62,7 +68,37 @@ async def handle_order_update(message):
 await client.subscribe(channel, handle_order_update)
 ```
 
-### Обработка ошибок
+### Trading Operations
+
+#### Get Balances
+
+```python
+# Request current balances (signed message)
+await client.get_balances()
+```
+
+#### Estimate Swap
+
+```python
+# Estimate swap cost (signed message)
+await client.estimate_swap('100', 'ETH', 'USDT')
+```
+
+#### Execute Swap
+
+```python
+# Execute swap operation (signed message)
+await client.do_swap('100', 'ETH', 'USDT')
+```
+
+#### Check Order Status
+
+```python
+# Get order status (signed message)
+await client.get_order_status('ord_12345678')
+```
+
+### Error Handling
 
 ```python
 async def handle_balances(message):
@@ -70,7 +106,7 @@ async def handle_balances(message):
         print(f"Error: {message['error']}")
         return
     
-    # Обработка данных
+    # Process data
     print(f"Data: {message['data']}")
 
 try:
@@ -81,7 +117,7 @@ except Exception as e:
     print(f"Connection failed: {e}")
 ```
 
-### Ручное управление соединением
+### Manual Connection Management
 
 ```python
 client = BrokerWSClient(api_key, secret_key, ws_url)
@@ -90,7 +126,7 @@ try:
     await client.connect()
     await client.subscribe('balances', handle_balances)
     
-    # Ваш код...
+    # Your code...
     
 finally:
     await client.close()
@@ -105,7 +141,7 @@ class BrokerWSClient:
     def __init__(self, api_key: str, secret_key: str, ws_url: str)
 ```
 
-#### Методы
+#### Methods
 
 ##### \_\_init\_\_
 
@@ -113,12 +149,12 @@ class BrokerWSClient:
 def __init__(self, api_key: str, secret_key: str, ws_url: str)
 ```
 
-Создает новый WebSocket клиент.
+Creates a new WebSocket client.
 
-**Параметры:**
-- `api_key` - API ключ
-- `secret_key` - Секретный ключ
-- `ws_url` - URL WebSocket сервера
+**Parameters:**
+- `api_key` - API key
+- `secret_key` - Secret key
+- `ws_url` - WebSocket server URL
 
 ##### connect()
 
@@ -126,10 +162,10 @@ def __init__(self, api_key: str, secret_key: str, ws_url: str)
 async def connect()
 ```
 
-Устанавливает соединение и проходит аутентификацию.
+Establishes connection and authenticates.
 
-**Возвращает:** `None`  
-**Исключения:** `Exception` при ошибке подключения
+**Returns:** `None`  
+**Raises:** `Exception` on connection error
 
 ##### subscribe()
 
@@ -137,14 +173,14 @@ async def connect()
 async def subscribe(channel: str, handler: Callable[[Dict[str, Any]], None])
 ```
 
-Подписывается на канал.
+Subscribes to a channel.
 
-**Параметры:**
-- `channel` - Название канала
-- `handler` - Функция обработчик сообщений (может быть sync или async)
+**Parameters:**
+- `channel` - Channel name
+- `handler` - Message handler function (can be sync or async)
 
-**Возвращает:** `None`  
-**Исключения:** `Exception` если не аутентифицирован
+**Returns:** `None`  
+**Raises:** `Exception` if not authenticated
 
 ##### unsubscribe()
 
@@ -152,12 +188,69 @@ async def subscribe(channel: str, handler: Callable[[Dict[str, Any]], None])
 async def unsubscribe(channel: str)
 ```
 
-Отменяет подписку на канал.
+Unsubscribes from a channel.
 
-**Параметры:**
-- `channel` - Название канала
+**Parameters:**
+- `channel` - Channel name
 
-**Возвращает:** `None`
+**Returns:** `None`
+
+##### get_balances()
+
+```python
+async def get_balances()
+```
+
+Requests current account balances (signed message).
+
+**Returns:** `None`  
+**Raises:** `Exception` if not authenticated
+
+##### estimate_swap()
+
+```python
+async def estimate_swap(amount_in: str, asset_in: str, asset_out: str)
+```
+
+Estimates swap cost (signed message).
+
+**Parameters:**
+- `amount_in` - Amount of input asset
+- `asset_in` - Input asset symbol
+- `asset_out` - Output asset symbol
+
+**Returns:** `None`  
+**Raises:** `Exception` if not authenticated
+
+##### do_swap()
+
+```python
+async def do_swap(amount_in: str, asset_in: str, asset_out: str)
+```
+
+Executes swap operation (signed message).
+
+**Parameters:**
+- `amount_in` - Amount of input asset
+- `asset_in` - Input asset symbol
+- `asset_out` - Output asset symbol
+
+**Returns:** `None`  
+**Raises:** `Exception` if not authenticated
+
+##### get_order_status()
+
+```python
+async def get_order_status(order_id: str)
+```
+
+Gets order status (signed message).
+
+**Parameters:**
+- `order_id` - Order ID to query
+
+**Returns:** `None`  
+**Raises:** `Exception` if not authenticated
 
 ##### close()
 
@@ -165,7 +258,7 @@ async def unsubscribe(channel: str)
 async def close()
 ```
 
-Закрывает WebSocket соединение.
+Closes WebSocket connection.
 
 ##### is_connected()
 
@@ -173,31 +266,31 @@ async def close()
 def is_connected() -> bool
 ```
 
-Проверяет состояние соединения.
+Checks connection status.
 
-**Возвращает:** `bool` - True если подключен и аутентифицирован
+**Returns:** `bool` - True if connected and authenticated
 
 #### Context Manager
 
-Клиент поддерживает async context manager:
+Client supports async context manager:
 
 ```python
 async with BrokerWSClient(api_key, secret_key, ws_url) as client:
-    # Автоматическое подключение
+    # Automatic connection
     await client.subscribe('balances', handler)
-    # Автоматическое отключение при выходе
+    # Automatic disconnection on exit
 ```
 
-### Обработчики сообщений
+### Message Handlers
 
-Функции-обработчики могут быть синхронными или асинхронными:
+Handler functions can be synchronous or asynchronous:
 
 ```python
-# Синхронный обработчик
+# Synchronous handler
 def sync_handler(message):
     print("Sync handler:", message['data'])
 
-# Асинхронный обработчик  
+# Asynchronous handler  
 async def async_handler(message):
     await some_async_operation()
     print("Async handler:", message['data'])
@@ -206,27 +299,27 @@ await client.subscribe('balances', sync_handler)
 await client.subscribe('orders:123', async_handler)
 ```
 
-### Структура сообщений
+### Message Structure
 
 ```python
 message = {
-    'op': 'string',          # Операция (auth, subscribe, unsubscribe)
-    'ch': 'string',          # Канал  
-    'key': 'string',         # API ключ (только для аутентификации)
-    'ts': 1640995200000,     # Timestamp в миллисекундах
-    'nonce': 'string',       # Уникальный nonce
-    'sig': 'string',         # HMAC подпись
-    'data': {},              # Данные сообщения
-    'error': 'string'        # Описание ошибки
+    'op': 'string',          # Operation (auth, subscribe, unsubscribe, estimate, swap, order_status, balances)
+    'ch': 'string',          # Channel  
+    'key': 'string',         # API key (auth only)
+    'ts': 1640995200000,     # Timestamp in milliseconds
+    'nonce': 'string',       # Unique nonce
+    'sig': 'string',         # HMAC signature
+    'data': {},              # Message data
+    'error': 'string'        # Error description
 }
 ```
 
-## Доступные каналы
+## Available Channels
 
 ### balances
-Получение обновлений баланса пользователя.
+Receives user balance updates.
 
-**Пример данных:**
+**Example data:**
 ```python
 {
   'ch': 'balances',
@@ -241,9 +334,9 @@ message = {
 ```
 
 ### orders:{orderId}
-Получение обновлений статуса конкретного ордера.
+Receives status updates for specific orders.
 
-**Пример данных:**
+**Example data:**
 ```python
 {
   'ch': 'orders:ord_12345678',
@@ -256,60 +349,60 @@ message = {
 }
 ```
 
-## Запуск примера
+## Running the Example
 
 ```bash
-# Запуск WebSocket примера
+# Run WebSocket example
 python ws_example.py
 
-# С виртуальным окружением
+# With virtual environment
 python -m venv venv
-source venv/bin/activate  # или venv\Scripts\activate на Windows
+source venv/bin/activate  # or venv\Scripts\activate on Windows
 pip install -r requirements.txt
 python ws_example.py
 ```
 
-## Особенности
+## Features
 
-### Автоматическое переподключение
+### Automatic Reconnection
 
-Клиент автоматически переподключается при разрыве соединения с экспоненциальной задержкой:
+Client automatically reconnects on connection loss with exponential backoff:
 
 ```python
-# Настройки переподключения (по умолчанию)
+# Reconnection settings (defaults)
 client.max_reconnect_attempts = 5
-client.reconnect_delay = 1.0  # 1 секунда
+client.reconnect_delay = 1.0  # 1 second
 ```
 
-При переподключении автоматически восстанавливаются все подписки.
+All subscriptions are automatically restored on reconnection.
 
-### Логирование
+### Logging
 
-Клиент использует стандартную библиотеку `logging`:
+Client uses standard `logging` library:
 
 ```python
 import logging
 
-# Включение debug логов
+# Enable debug logs
 logging.basicConfig(level=logging.DEBUG)
 
-# Или для конкретного клиента
+# Or for specific client
 client = BrokerWSClient(api_key, secret_key, ws_url)
 client.logger.setLevel(logging.DEBUG)
 ```
 
-### Асинхронная архитектура
+### Asynchronous Architecture
 
-Клиент полностью асинхронный и использует `asyncio`:
+Client is fully asynchronous and uses `asyncio`:
 
 ```python
-# Все операции асинхронные
+# All operations are asynchronous
 await client.connect()
 await client.subscribe('balances', handler)
 await client.unsubscribe('balances')
 await client.close()
 
-# Поддержка нескольких клиентов
+# Support for multiple clients
 clients = [
     BrokerWSClient(key1, secret1, url),
     BrokerWSClient(key2, secret2, url)
@@ -318,7 +411,7 @@ clients = [
 await asyncio.gather(*[client.connect() for client in clients])
 ```
 
-## Интеграция с существующими проектами
+## Integration with Existing Projects
 
 ### FastAPI
 
@@ -343,9 +436,20 @@ async def shutdown():
 @app.get("/status")
 async def get_status():
     return {"websocket_connected": ws_client.is_connected() if ws_client else False}
+
+@app.post("/swap")
+async def execute_swap(amount: str, from_asset: str, to_asset: str):
+    if not ws_client or not ws_client.is_connected():
+        return {"error": "WebSocket not connected"}
+    
+    try:
+        await ws_client.do_swap(amount, from_asset, to_asset)
+        return {"success": True}
+    except Exception as e:
+        return {"error": str(e)}
 ```
 
-### Django (с django-channels)
+### Django (with django-channels)
 
 ```python
 from channels.generic.websocket import AsyncWebsocketConsumer
@@ -362,7 +466,7 @@ class TradingConsumer(AsyncWebsocketConsumer):
             await self.ws_client.close()
 ```
 
-### Как сервис
+### As a Service
 
 ```python
 class WebSocketService:
@@ -384,13 +488,22 @@ class WebSocketService:
         if channel in self.handlers:
             await self.client.unsubscribe(channel)
             del self.handlers[channel]
+    
+    async def get_balances(self):
+        return await self.client.get_balances()
+    
+    async def estimate_swap(self, amount_in, asset_in, asset_out):
+        return await self.client.estimate_swap(amount_in, asset_in, asset_out)
+    
+    async def execute_swap(self, amount_in, asset_in, asset_out):
+        return await self.client.do_swap(amount_in, asset_in, asset_out)
 ```
 
-## Безопасность
+## Security
 
-- Все сообщения подписываются с использованием HMAC-SHA256
-- API ключи должны быть сохранены в безопасном месте
-- Рекомендуется использовать переменные окружения для ключей
+- All trading operation messages are signed using HMAC-SHA256
+- API keys should be stored securely
+- Environment variables are recommended for keys
 
 ```python
 import os
@@ -398,16 +511,16 @@ import os
 api_key = os.getenv('BROKER_API_KEY')
 secret_key = os.getenv('BROKER_SECRET_KEY')
 
-# Или с python-dotenv
+# Or with python-dotenv
 from dotenv import load_dotenv
 load_dotenv()
 
 api_key = os.getenv('BROKER_API_KEY')
 ```
 
-## Отладка
+## Debugging
 
-### Включение debug логов
+### Enable Debug Logs
 
 ```python
 import logging
@@ -417,7 +530,7 @@ logging.basicConfig(
 )
 ```
 
-### Мониторинг состояния
+### Connection Monitoring
 
 ```python
 async def monitor_connection():
@@ -425,31 +538,31 @@ async def monitor_connection():
         print(f"Connected: {client.is_connected()}")
         await asyncio.sleep(10)
 
-# Запуск в фоне
+# Run in background
 asyncio.create_task(monitor_connection())
 ```
 
-### Обработка всех сообщений
+### Handle All Messages
 
 ```python
 async def debug_handler(message):
     print(f"DEBUG: Received message: {message}")
 
-# Подписаться на все каналы для отладки
+# Subscribe to all channels for debugging
 await client.subscribe('balances', debug_handler)
 await client.subscribe('orders:test_order', debug_handler)
 ```
 
-## Требования
+## Requirements
 
 - Python 3.7+
-- `asyncio` поддержка
-- `websockets` библиотека
-- Стабильное интернет соединение
+- `asyncio` support
+- `websockets` library
+- Stable internet connection
 
-## Ограничения
+## Limitations
 
-- Максимум 100 активных подписок на одно соединение
-- Таймаут аутентификации: 10 секунд  
-- Максимальный размер сообщения: 64KB
-- Heartbeat интервал: 30 секунд
+- Maximum 100 active subscriptions per connection
+- Authentication timeout: 10 seconds  
+- Maximum message size: 64KB
+- Heartbeat interval: 30 seconds

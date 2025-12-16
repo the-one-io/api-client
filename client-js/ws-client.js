@@ -38,14 +38,21 @@ export class BrokerWSClient extends EventEmitter {
      * Generates HMAC-SHA256 signature for WebSocket authentication
      * @param {number} timestamp - Timestamp in milliseconds
      * @param {string} nonce - Nonce
+     * @param {string} operation - Operation name (optional, for signed messages)
+     * @param {object} data - Message data (optional, for signed messages)
      * @returns {string}
      */
-    generateSignature(timestamp, nonce) {
+    generateSignature(timestamp, nonce, operation = null, data = null) {
         // For WebSocket auth, use the same signature format as REST API:
-        // Method: "WS", Path: "/ws/v1/stream", Body: empty (SHA256 of empty bytes)
+        // Method: "WS", Path: "/ws/v1/stream" or "/ws/v1/{operation}", Body: SHA256 of data
         const method = 'WS';
-        const pathWithQuery = '/ws/v1/stream';
-        const bodySHA256 = crypto.createHash('sha256').update('').digest('hex');
+        const pathWithQuery = operation ? `/ws/v1/${operation}` : '/ws/v1/stream';
+        
+        let bodyBytes = Buffer.from('');
+        if (data !== null) {
+            bodyBytes = Buffer.from(JSON.stringify(data));
+        }
+        const bodySHA256 = crypto.createHash('sha256').update(bodyBytes).digest('hex');
         
         const canonicalString = [method, pathWithQuery, timestamp.toString(), nonce, bodySHA256].join('\n');
 
@@ -64,6 +71,26 @@ export class BrokerWSClient extends EventEmitter {
             .digest('hex');
 
         return signature;
+    }
+
+    /**
+     * Creates a signed message for operations that require authentication
+     * @param {string} operation - Operation name
+     * @param {object} data - Message data
+     * @returns {object}
+     */
+    createSignedMessage(operation, data) {
+        const timestamp = Date.now();
+        const nonce = this.generateNonce();
+        const signature = this.generateSignature(timestamp, nonce, operation, data);
+
+        return {
+            op: operation,
+            ts: timestamp,
+            nonce: nonce,
+            sig: signature,
+            data: data
+        };
     }
 
     /**
@@ -359,15 +386,13 @@ export class BrokerWSClient extends EventEmitter {
             throw new Error('Not authenticated');
         }
 
-        const estimateMessage = {
-            op: 'estimate',
-            data: {
-                amountIn: amountIn,
-                assetIn: assetIn,
-                assetOut: assetOut
-            }
+        const estimateData = {
+            amountIn: amountIn,
+            assetIn: assetIn,
+            assetOut: assetOut
         };
 
+        const estimateMessage = this.createSignedMessage('estimate', estimateData);
         this.send(estimateMessage);
     }
 
@@ -383,15 +408,13 @@ export class BrokerWSClient extends EventEmitter {
             throw new Error('Not authenticated');
         }
 
-        const swapMessage = {
-            op: 'swap',
-            data: {
-                amountIn: amountIn,
-                assetIn: assetIn,
-                assetOut: assetOut
-            }
+        const swapData = {
+            amountIn: amountIn,
+            assetIn: assetIn,
+            assetOut: assetOut
         };
 
+        const swapMessage = this.createSignedMessage('swap', swapData);
         this.send(swapMessage);
     }
 
@@ -405,13 +428,11 @@ export class BrokerWSClient extends EventEmitter {
             throw new Error('Not authenticated');
         }
 
-        const orderMessage = {
-            op: 'order_status',
-            data: {
-                id: orderID
-            }
+        const orderData = {
+            id: orderID
         };
 
+        const orderMessage = this.createSignedMessage('order_status', orderData);
         this.send(orderMessage);
     }
 
@@ -424,10 +445,7 @@ export class BrokerWSClient extends EventEmitter {
             throw new Error('Not authenticated');
         }
 
-        const balancesMessage = {
-            op: 'balances'
-        };
-
+        const balancesMessage = this.createSignedMessage('balances', null);
         this.send(balancesMessage);
     }
 }

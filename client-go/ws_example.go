@@ -60,15 +60,6 @@ func runWebSocketExample() {
 	// Demo REST API commands via WebSocket
 	fmt.Println("\n=== Testing REST API commands via WebSocket ===")
 
-	// Test estimate
-	fmt.Println("💰 Testing estimate swap...")
-	err = wsClient.EstimateSwap("100.00", "USDT", "ETH")
-	if err != nil {
-		log.Printf("Failed to estimate swap: %v", err)
-	}
-
-	time.Sleep(1 * time.Second)
-
 	// Test balances request
 	fmt.Println("💼 Getting account balances...")
 	err = wsClient.GetBalances()
@@ -78,20 +69,29 @@ func runWebSocketExample() {
 
 	time.Sleep(1 * time.Second)
 
-	// Test order status
-	fmt.Println("📋 Getting order status...")
-	err = wsClient.GetOrderStatus("ord_12345678")
+	// Test estimate
+	fmt.Println("💰 Testing estimate swap...")
+	err = wsClient.EstimateSwap("100.00", "USDT", "ETH")
 	if err != nil {
-		log.Printf("Failed to get order status: %v", err)
+		log.Printf("Failed to estimate swap: %v", err)
 	}
 
 	time.Sleep(1 * time.Second)
 
 	// Test swap (creates new order)
 	fmt.Println("🔄 Testing swap operation...")
-	err = wsClient.DoSwap("100.00", "USDT", "ETH")
+	err = wsClient.DoSwap("10.00", "USDT", "ETH")
 	if err != nil {
 		log.Printf("Failed to do swap: %v", err)
+	}
+
+	time.Sleep(1 * time.Second)
+
+	// Test order status
+	fmt.Println("📋 Getting order status...")
+	err = wsClient.GetOrderStatus("32588")
+	if err != nil {
+		log.Printf("Failed to get order status: %v", err)
 	}
 
 	// Set up graceful shutdown

@@ -294,12 +294,8 @@ func (ws *WSClient) GetOrderStatus(orderID string) error {
 		"id": orderID,
 	}
 
-	orderMsg := WSMessage{
-		Op:   "order_status",
-		Data: orderData,
-	}
-
-	return ws.sendMessage(&orderMsg)
+	orderMsg := ws.createSignedMessage("order_status", orderData)
+	return ws.sendMessage(orderMsg)
 }
 
 // GetBalances gets account balances via WebSocket

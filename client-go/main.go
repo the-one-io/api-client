@@ -50,13 +50,14 @@ type BalanceResponse struct {
 	Balances []Balance `json:"balances"`
 }
 
-// EstimateRequest represents request for swap estimation
-type EstimateRequest struct {
-	From    string  `json:"from"`
-	To      string  `json:"to"`
-	Amount  string  `json:"amount"`
-	Network string  `json:"network"`
-	Account *string `json:"account,omitempty"`
+// EstimateRequestHTTP represents request for swap estimation (HTTP only)
+type EstimateRequestHTTP struct {
+	From    string   `json:"from"`
+	To      string   `json:"to"`
+	Amount  string   `json:"amount"`
+	Network string   `json:"network"`
+	Account *string  `json:"account,omitempty"`
+	Filter  []string `json:"filter,omitempty"` // Liquidity sources filter (binance, bybit, gate)
 }
 
 // RouteStep represents a swap route step
@@ -77,14 +78,15 @@ type EstimateResponse struct {
 	ExpiresAt   int64       `json:"expiresAt"`
 }
 
-// SwapRequest represents request for executing a swap
-type SwapRequest struct {
-	From          string  `json:"from"`
-	To            string  `json:"to"`
-	Amount        string  `json:"amount"`
-	Account       string  `json:"account"`
-	SlippageBps   int     `json:"slippage_bps"`
-	ClientOrderID *string `json:"clientOrderId,omitempty"`
+// SwapRequestHTTP represents request for executing a swap (HTTP only)
+type SwapRequestHTTP struct {
+	From          string   `json:"from"`
+	To            string   `json:"to"`
+	Amount        string   `json:"amount"`
+	Account       string   `json:"account"`
+	SlippageBps   int      `json:"slippage_bps"`
+	ClientOrderID *string  `json:"clientOrderId,omitempty"`
+	Filter        []string `json:"filter,omitempty"` // Liquidity sources filter (binance, bybit, gate)
 }
 
 // SwapResponse represents response for swap request
@@ -200,7 +202,7 @@ func (c *BrokerClient) GetBalances(ctx context.Context) (*BalanceResponse, error
 }
 
 // EstimateSwap gets swap estimation
-func (c *BrokerClient) EstimateSwap(ctx context.Context, req *EstimateRequest) (*EstimateResponse, error) {
+func (c *BrokerClient) EstimateSwap(ctx context.Context, req *EstimateRequestHTTP) (*EstimateResponse, error) {
 	body, err := json.Marshal(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
@@ -224,7 +226,7 @@ func (c *BrokerClient) EstimateSwap(ctx context.Context, req *EstimateRequest) (
 }
 
 // Swap executes swap
-func (c *BrokerClient) Swap(ctx context.Context, req *SwapRequest, idempotencyKey string) (*SwapResponse, error) {
+func (c *BrokerClient) Swap(ctx context.Context, req *SwapRequestHTTP, idempotencyKey string) (*SwapResponse, error) {
 	body, err := json.Marshal(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
@@ -313,10 +315,11 @@ func main() {
 
 	// Example 2: Swap estimation
 	fmt.Println("\n=== Swap estimation ===")
-	estimateReq := &EstimateRequest{
+	estimateReq := &EstimateRequestHTTP{
 		From:   "TRX",
 		To:     "USDT",
 		Amount: "10",
+		Filter: []string{"binance", "gate"}, // Use specific liquidity sources
 	}
 
 	estimate, err := client.EstimateSwap(ctx, estimateReq)
@@ -329,11 +332,12 @@ func main() {
 	// Example 3: Executing swap (only if estimation exists)
 	if estimate != nil {
 		fmt.Println("\n=== Executing swap ===")
-		swapReq := &SwapRequest{
+		swapReq := &SwapRequestHTTP{
 			From:        estimateReq.From,
 			To:          estimateReq.To,
 			Amount:      estimateReq.Amount,
 			SlippageBps: 30,
+			Filter:      estimateReq.Filter, // Use same filter
 		}
 
 		idempotencyKey := fmt.Sprintf("swap_%d", time.Now().UnixNano())

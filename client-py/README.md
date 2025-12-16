@@ -49,8 +49,8 @@ The signature is created from a canonical string:
 from broker_client import BrokerClient, APIError
 
 # Client setup
-api_key = "ak_NCkCBuPwz-76ZuIufZesX3CU0AEtZ_S3yAUDwJtBTsk"
-secret_key = "tMLS4vFaKLApc8WL6qvn-3Gu11agkJe31ijrftHUMFYOjnXlUIkkc1sUzHqNSWjt"
+api_key = "key"
+secret_key = "secret"
 base_url = "http://localhost:8080"
 
 client = BrokerClient(api_key, secret_key, base_url)

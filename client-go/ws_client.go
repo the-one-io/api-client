@@ -29,6 +29,27 @@ type WSMessage struct {
 	Error     string      `json:"error,omitempty"`
 }
 
+// EstimateRequest represents request for swap estimation
+type EstimateRequest struct {
+	From    string   `json:"from"`
+	To      string   `json:"to"`
+	Amount  string   `json:"amount"`
+	Network string   `json:"network"`
+	Account *string  `json:"account,omitempty"`
+	Filter  []string `json:"filter,omitempty"` // Liquidity sources filter (binance, bybit, gate)
+}
+
+// SwapRequest represents request for executing a swap
+type SwapRequest struct {
+	From          string   `json:"from"`
+	To            string   `json:"to"`
+	Amount        string   `json:"amount"`
+	Account       string   `json:"account"`
+	SlippageBps   int      `json:"slippage_bps"`
+	ClientOrderID *string  `json:"clientOrderId,omitempty"`
+	Filter        []string `json:"filter,omitempty"` // Liquidity sources filter (binance, bybit, gate)
+}
+
 // WSClient represents WebSocket client for Broker Trading API
 type WSClient struct {
 	apiKey    string
@@ -264,50 +285,85 @@ func (ws *WSClient) Wait() {
 	<-ws.ctx.Done()
 }
 
-// EstimateSwap estimates a swap operation via WebSocket
-func (ws *WSClient) EstimateSwap(amountIn, assetIn, assetOut string) error {
-	return ws.EstimateSwapWithFilter(amountIn, assetIn, assetOut, nil)
-}
-
-// EstimateSwapWithFilter estimates a swap operation via WebSocket with liquidity source filter
-func (ws *WSClient) EstimateSwapWithFilter(amountIn, assetIn, assetOut string, filter []string) error {
+// EstimateSwap estimates a swap operation via WebSocket using EstimateRequest struct
+func (ws *WSClient) EstimateSwap(req *EstimateRequest) error {
+	// Convert EstimateRequest to WebSocket format
 	estimateData := map[string]interface{}{
-		"amountIn": amountIn,
-		"assetIn":  assetIn,
-		"assetOut": assetOut,
+		"amountIn": req.Amount,
+		"assetIn":  req.From,
+		"assetOut": req.To,
 	}
 
-	if filter != nil && len(filter) > 0 {
-		estimateData["filter"] = filter
+	if req.Network != "" {
+		estimateData["network"] = req.Network
+	}
+
+	if req.Account != nil {
+		estimateData["account"] = *req.Account
+	}
+
+	if req.Filter != nil && len(req.Filter) > 0 {
+		estimateData["filter"] = req.Filter
 	}
 
 	estimateMsg := ws.createSignedMessage("estimate", estimateData)
 	return ws.sendMessage(estimateMsg)
 }
 
-// DoSwap executes a swap operation via WebSocket
-func (ws *WSClient) DoSwap(amountIn, assetIn, assetOut string) error {
-	return ws.DoSwapWithFilter(amountIn, assetIn, assetOut, nil)
+// EstimateSwapSimple estimates a swap operation via WebSocket with simple parameters
+func (ws *WSClient) EstimateSwapSimple(amountIn, assetIn, assetOut string, filter []string) error {
+	req := &EstimateRequest{
+		Amount: amountIn,
+		From:   assetIn,
+		To:     assetOut,
+		Filter: filter,
+	}
+	return ws.EstimateSwap(req)
 }
 
-// DoSwapWithFilter executes a swap operation via WebSocket with liquidity source filter
-func (ws *WSClient) DoSwapWithFilter(amountIn, assetIn, assetOut string, filter []string) error {
+// DoSwap executes a swap operation via WebSocket using SwapRequest struct
+func (ws *WSClient) DoSwap(req *SwapRequest) error {
+	// Convert SwapRequest to WebSocket format
 	swapData := map[string]interface{}{
-		"amountIn": amountIn,
-		"assetIn":  assetIn,
-		"assetOut": assetOut,
+		"amountIn": req.Amount,
+		"assetIn":  req.From,
+		"assetOut": req.To,
 	}
 
-	if filter != nil && len(filter) > 0 {
-		swapData["filter"] = filter
+	if req.Account != "" {
+		swapData["account"] = req.Account
+	}
+
+	if req.SlippageBps > 0 {
+		swapData["slippage_bps"] = req.SlippageBps
+	}
+
+	if req.ClientOrderID != nil {
+		swapData["clientOrderId"] = *req.ClientOrderID
+	}
+
+	if req.Filter != nil && len(req.Filter) > 0 {
+		swapData["filter"] = req.Filter
 	}
 
 	swapMsg := ws.createSignedMessage("swap", swapData)
 	return ws.sendMessage(swapMsg)
 }
 
+// DoSwapSimple executes a swap operation via WebSocket with simple parameters
+func (ws *WSClient) DoSwapSimple(amountIn, assetIn, assetOut string, slippageBps int, filter []string) error {
+	req := &SwapRequest{
+		Amount:      amountIn,
+		From:        assetIn,
+		To:          assetOut,
+		SlippageBps: slippageBps,
+		Filter:      filter,
+	}
+	return ws.DoSwap(req)
+}
+
 // GetOrderStatus gets order status via WebSocket
-func (ws *WSClient) GetOrmakederStatus(orderID string) error {
+func (ws *WSClient) GetOrderStatus(orderID string) error {
 	orderData := map[string]interface{}{
 		"id": orderID,
 	}

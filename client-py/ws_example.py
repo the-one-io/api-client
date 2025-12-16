@@ -36,8 +36,8 @@ async def main():
     setup_logging()
     
     # API keys (obtained from server)
-    api_key = 'ak_X0sw1Dr97hcXkFsDM9nXbD2gn2ZkCIptjtpqQ-MvAnc'
-    secret_key = 'L2pcViLs7uGdFZJd3wYKmnSgoSv-UYx8oF4c6lX95NSk3Ejm-T5eWproVlRcvQn1'
+    api_key = 'key'
+    secret_key = 'secret'
     ws_url = 'ws://localhost:8080/ws/v1/stream'
 
     # Create WebSocket client

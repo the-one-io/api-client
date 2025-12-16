@@ -71,7 +71,7 @@ func runWebSocketExample() {
 
 	// Test estimate
 	fmt.Println("💰 Testing estimate swap...")
-	err = wsClient.EstimateSwap("100.00", "USDT", "ETH")
+	err = wsClient.EstimateSwapSimple("100.00", "USDT", "ETH", []string{"binance", "gate"})
 	if err != nil {
 		log.Printf("Failed to estimate swap: %v", err)
 	}
@@ -80,7 +80,7 @@ func runWebSocketExample() {
 
 	// Test swap (creates new order)
 	fmt.Println("🔄 Testing swap operation...")
-	err = wsClient.DoSwap("10.00", "USDT", "ETH")
+	err = wsClient.DoSwapSimple("10.00", "USDT", "ETH", 30, []string{"binance", "gate"})
 	if err != nil {
 		log.Printf("Failed to do swap: %v", err)
 	}

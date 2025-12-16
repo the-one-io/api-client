@@ -379,9 +379,10 @@ export class BrokerWSClient extends EventEmitter {
      * @param {string} amountIn - Amount of input asset
      * @param {string} assetIn - Input asset
      * @param {string} assetOut - Output asset
+     * @param {Array<string>} filter - Liquidity sources filter (optional)
      * @returns {Promise<void>}
      */
-    async estimateSwap(amountIn, assetIn, assetOut) {
+    async estimateSwap(amountIn, assetIn, assetOut, filter = null) {
         if (!this.authenticated) {
             throw new Error('Not authenticated');
         }
@@ -391,6 +392,10 @@ export class BrokerWSClient extends EventEmitter {
             assetIn: assetIn,
             assetOut: assetOut
         };
+        
+        if (filter && filter.length > 0) {
+            estimateData.filter = filter;
+        }
 
         const estimateMessage = this.createSignedMessage('estimate', estimateData);
         this.send(estimateMessage);
@@ -401,9 +406,10 @@ export class BrokerWSClient extends EventEmitter {
      * @param {string} amountIn - Amount of input asset
      * @param {string} assetIn - Input asset
      * @param {string} assetOut - Output asset
+     * @param {Array<string>} filter - Liquidity sources filter (optional)
      * @returns {Promise<void>}
      */
-    async doSwap(amountIn, assetIn, assetOut) {
+    async doSwap(amountIn, assetIn, assetOut, filter = null) {
         if (!this.authenticated) {
             throw new Error('Not authenticated');
         }
@@ -413,6 +419,10 @@ export class BrokerWSClient extends EventEmitter {
             assetIn: assetIn,
             assetOut: assetOut
         };
+        
+        if (filter && filter.length > 0) {
+            swapData.filter = filter;
+        }
 
         const swapMessage = this.createSignedMessage('swap', swapData);
         this.send(swapMessage);

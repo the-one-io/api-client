@@ -9,7 +9,7 @@ import hmac
 import time
 import random
 import base64
-from typing import Optional, Callable, Dict, Any
+from typing import Optional, Callable, Dict, Any, List
 import logging
 import websockets
 from websockets.exceptions import ConnectionClosed, WebSocketException
@@ -347,7 +347,7 @@ class BrokerWSClient:
 
     # Trading Operations
 
-    async def estimate_swap(self, amount_in: str, asset_in: str, asset_out: str):
+    async def estimate_swap(self, amount_in: str, asset_in: str, asset_out: str, filter_sources: Optional[List[str]] = None):
         """
         Estimate a swap operation via WebSocket
         
@@ -355,6 +355,7 @@ class BrokerWSClient:
             amount_in: Amount of input asset
             asset_in: Input asset symbol
             asset_out: Output asset symbol
+            filter_sources: Liquidity sources filter (optional)
         """
         if not self.authenticated:
             raise Exception("Not authenticated")
@@ -365,11 +366,14 @@ class BrokerWSClient:
             "assetOut": asset_out
         }
         
+        if filter_sources and len(filter_sources) > 0:
+            estimate_data["filter"] = filter_sources
+        
         estimate_message = self.create_signed_message('estimate', estimate_data)
         await self._send_message(estimate_message)
-        self.logger.info(f"Estimate swap request sent: {asset_in} -> {asset_out}")
+        self.logger.info(f"Estimate swap request sent: {asset_in} -> {asset_out} with filter: {filter_sources}")
 
-    async def do_swap(self, amount_in: str, asset_in: str, asset_out: str):
+    async def do_swap(self, amount_in: str, asset_in: str, asset_out: str, filter_sources: Optional[List[str]] = None):
         """
         Execute a swap operation via WebSocket
         
@@ -377,6 +381,7 @@ class BrokerWSClient:
             amount_in: Amount of input asset
             asset_in: Input asset symbol
             asset_out: Output asset symbol
+            filter_sources: Liquidity sources filter (optional)
         """
         if not self.authenticated:
             raise Exception("Not authenticated")
@@ -387,9 +392,12 @@ class BrokerWSClient:
             "assetOut": asset_out
         }
         
+        if filter_sources and len(filter_sources) > 0:
+            swap_data["filter"] = filter_sources
+        
         swap_message = self.create_signed_message('swap', swap_data)
         await self._send_message(swap_message)
-        self.logger.info(f"Swap request sent: {asset_in} -> {asset_out}")
+        self.logger.info(f"Swap request sent: {asset_in} -> {asset_out} with filter: {filter_sources}")
 
     async def get_order_status(self, order_id: str):
         """

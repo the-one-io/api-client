@@ -13,8 +13,8 @@ import (
 // Example of WebSocket client usage
 func runWebSocketExample() {
 	// API keys (obtained from server)
-	apiKey := "ak_X0sw1Dr97hcXkFsDM9nXbD2gn2ZkCIptjtpqQ-MvAnc"
-	secretKey := "L2pcViLs7uGdFZJd3wYKmnSgoSv-UYx8oF4c6lX95NSk3Ejm-T5eWproVlRcvQn1"
+	apiKey := "key"
+	secretKey := "secret"
 	wsURL := "ws://localhost:8080/ws/v1/stream"
 
 	// Create WebSocket client

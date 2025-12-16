@@ -266,10 +266,19 @@ func (ws *WSClient) Wait() {
 
 // EstimateSwap estimates a swap operation via WebSocket
 func (ws *WSClient) EstimateSwap(amountIn, assetIn, assetOut string) error {
+	return ws.EstimateSwapWithFilter(amountIn, assetIn, assetOut, nil)
+}
+
+// EstimateSwapWithFilter estimates a swap operation via WebSocket with liquidity source filter
+func (ws *WSClient) EstimateSwapWithFilter(amountIn, assetIn, assetOut string, filter []string) error {
 	estimateData := map[string]interface{}{
 		"amountIn": amountIn,
 		"assetIn":  assetIn,
 		"assetOut": assetOut,
+	}
+
+	if filter != nil && len(filter) > 0 {
+		estimateData["filter"] = filter
 	}
 
 	estimateMsg := ws.createSignedMessage("estimate", estimateData)
@@ -278,10 +287,19 @@ func (ws *WSClient) EstimateSwap(amountIn, assetIn, assetOut string) error {
 
 // DoSwap executes a swap operation via WebSocket
 func (ws *WSClient) DoSwap(amountIn, assetIn, assetOut string) error {
+	return ws.DoSwapWithFilter(amountIn, assetIn, assetOut, nil)
+}
+
+// DoSwapWithFilter executes a swap operation via WebSocket with liquidity source filter
+func (ws *WSClient) DoSwapWithFilter(amountIn, assetIn, assetOut string, filter []string) error {
 	swapData := map[string]interface{}{
 		"amountIn": amountIn,
 		"assetIn":  assetIn,
 		"assetOut": assetOut,
+	}
+
+	if filter != nil && len(filter) > 0 {
+		swapData["filter"] = filter
 	}
 
 	swapMsg := ws.createSignedMessage("swap", swapData)
@@ -289,7 +307,7 @@ func (ws *WSClient) DoSwap(amountIn, assetIn, assetOut string) error {
 }
 
 // GetOrderStatus gets order status via WebSocket
-func (ws *WSClient) GetOrderStatus(orderID string) error {
+func (ws *WSClient) GetOrmakederStatus(orderID string) error {
 	orderData := map[string]interface{}{
 		"id": orderID,
 	}

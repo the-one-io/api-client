@@ -284,12 +284,8 @@ func (ws *WSClient) DoSwap(amountIn, assetIn, assetOut string) error {
 		"assetOut": assetOut,
 	}
 
-	swapMsg := WSMessage{
-		Op:   "swap",
-		Data: swapData,
-	}
-
-	return ws.sendMessage(&swapMsg)
+	swapMsg := ws.createSignedMessage("swap", swapData)
+	return ws.sendMessage(swapMsg)
 }
 
 // GetOrderStatus gets order status via WebSocket

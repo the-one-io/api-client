@@ -1,6 +1,6 @@
 # WebSocket Client for Python
 
-WebSocket client for Broker Trading API in Python with asynchronous processing, authentication and real-time support.
+WebSocket client for TheOne Trading API in Python with asynchronous processing, authentication and real-time support.
 
 ## Installation
 

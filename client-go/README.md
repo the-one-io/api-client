@@ -1,6 +1,6 @@
-# Broker Trading API - Go Client Example
+# TheOne Trading API - Go Client Example
 
-Этот пример демонстрирует, как использовать Broker Trading API с помощью Go клиента.
+Этот пример демонстрирует, как использовать TheOne Trading API с помощью Go клиента.
 
 ## Описание
 

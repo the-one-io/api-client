@@ -1,6 +1,6 @@
 # WebSocket Client for Go
 
-WebSocket client для Broker Trading API на языке Go с поддержкой аутентификации и реального времени.
+WebSocket client для TheOne Trading API на языке Go с поддержкой аутентификации и реального времени.
 
 ## Установка
 

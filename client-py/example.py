@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Example of using Broker Trading API Python client
+Example of using TheOne Trading API Python client
 """
 
 import time

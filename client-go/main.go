@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-// BrokerClient represents the client for Broker Trading API
+// BrokerClient represents the client for TheOne Trading API
 type BrokerClient struct {
 	apiKey    string
 	secretKey string

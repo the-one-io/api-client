@@ -2,7 +2,7 @@ import crypto from 'crypto';
 import fetch from 'node-fetch';
 
 /**
- * Broker Trading API Client for JavaScript
+ * TheOne Trading API Client for JavaScript
  */
 export class BrokerClient {
     /**

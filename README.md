@@ -1,6 +1,6 @@
-# Broker Trading API - Client Examples
+# TheOne Trading API - Client Examples
 
-This directory contains client examples for the Broker Trading API in various programming languages.
+This directory contains client examples for the TheOne Trading API in various programming languages.
 
 ## Available Clients
 

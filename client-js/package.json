@@ -1,7 +1,7 @@
 {
   "name": "broker-trading-api-client",
   "version": "1.0.0",
-  "description": "JavaScript client for Broker Trading API",
+  "description": "JavaScript client for TheOne Trading API",
   "main": "index.js",
   "type": "module",
   "scripts": {

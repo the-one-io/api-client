@@ -1,6 +1,6 @@
-# Broker Trading API - Python Client Example
+# TheOne Trading API - Python Client Example
 
-This example demonstrates how to use the Broker Trading API with a Python client.
+This example demonstrates how to use the TheOne Trading API with a Python client.
 
 ## Installation
 

@@ -50,7 +50,7 @@ type SwapRequest struct {
 	Filter        []string `json:"filter,omitempty"` // Liquidity sources filter (binance, bybit, gate)
 }
 
-// WSClient represents WebSocket client for Broker Trading API
+// WSClient represents WebSocket client for TheOne Trading API
 type WSClient struct {
 	apiKey    string
 	secretKey string

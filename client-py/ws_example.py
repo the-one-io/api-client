@@ -1,5 +1,5 @@
 """
-Example usage of WebSocket client for Broker Trading API
+Example usage of WebSocket client for TheOne Trading API
 """
 
 import asyncio

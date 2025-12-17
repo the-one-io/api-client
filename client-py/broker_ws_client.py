@@ -1,5 +1,5 @@
 """
-WebSocket Client for Broker Trading API
+WebSocket Client for TheOne Trading API
 """
 
 import asyncio
@@ -17,7 +17,7 @@ from websockets.exceptions import ConnectionClosed, WebSocketException
 
 class BrokerWSClient:
     """
-    WebSocket client for Broker Trading API
+    WebSocket client for TheOne Trading API
     
     Provides real-time data streaming with authentication and subscription management.
     """

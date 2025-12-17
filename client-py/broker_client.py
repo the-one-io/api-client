@@ -1,5 +1,5 @@
 """
-Broker Trading API Client for Python
+TheOne Trading API Client for Python
 """
 
 import hashlib
@@ -47,7 +47,7 @@ class RouteStep:
 
 
 class BrokerClient:
-    """Client for Broker Trading API"""
+    """Client for TheOne Trading API"""
 
     def __init__(self, api_key: str, secret_key: str, base_url: str):
         """

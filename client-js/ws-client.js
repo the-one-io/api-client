@@ -3,7 +3,7 @@ import { WebSocket } from 'ws';
 import { EventEmitter } from 'events';
 
 /**
- * WebSocket Client for Broker Trading API
+ * WebSocket Client for TheOne Trading API
  */
 export class BrokerWSClient extends EventEmitter {
     /**

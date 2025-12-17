@@ -1,6 +1,6 @@
 # WebSocket Client for JavaScript/Node.js
 
-WebSocket client for Broker Trading API in JavaScript/Node.js with authentication and real-time support.
+WebSocket client for TheOne Trading API in JavaScript/Node.js with authentication and real-time support.
 
 ## Installation
 

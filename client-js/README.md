@@ -1,6 +1,6 @@
-# Broker Trading API - JavaScript Client Example
+# TheOne Trading API - JavaScript Client Example
 
-This example demonstrates how to use the Broker Trading API with a JavaScript (Node.js) client.
+This example demonstrates how to use the TheOne Trading API with a JavaScript (Node.js) client.
 
 ## Installation
 

@@ -10,8 +10,13 @@ install:
 
 # Run the example
 run:
-	@echo "Running JavaScript client example..."
+	@echo "Running JavaScript client example (REST API)..."
 	npm start
+
+# Run WebSocket example
+run-ws:
+	@echo "Running WebSocket client example..."
+	node ws-example.js
 
 # Run in development mode (with nodemon if installed)
 dev:
@@ -72,7 +77,8 @@ check:
 help:
 	@echo "Available commands:"
 	@echo "  install     - Install dependencies"
-	@echo "  run         - Run the JavaScript client example"
+	@echo "  run         - Run the REST API client example"
+	@echo "  run-ws      - Run the WebSocket client example"
 	@echo "  dev         - Run in development mode (with nodemon)"
 	@echo "  clean       - Remove node_modules and package-lock.json"
 	@echo "  reinstall   - Clean and reinstall dependencies"
@@ -84,4 +90,5 @@ help:
 	@echo "  help        - Show this help message"
 	@echo ""
 	@echo "Quick start:"
-	@echo "  make install && make run"
+	@echo "  make install && make run       # REST API example"
+	@echo "  make install && make run-ws    # WebSocket example"

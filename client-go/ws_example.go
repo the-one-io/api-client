@@ -8,14 +8,36 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/joho/godotenv"
 )
 
 // Example of WebSocket client usage
 func runWebSocketExample() {
-	// API keys (obtained from server)
-	apiKey := "key"
-	secretKey := "secret"
-	wsURL := "ws://localhost:8080/ws/v1/stream"
+	// Load environment variables from .env file
+	if err := godotenv.Load(); err != nil {
+		log.Println("Warning: .env file not found, using environment variables")
+	}
+
+	// Get API keys from environment variables
+	apiKey := os.Getenv("BROKER_API_KEY")
+	secretKey := os.Getenv("BROKER_SECRET_KEY")
+	baseURL := os.Getenv("BROKER_BASE_URL")
+
+	// Validate required environment variables
+	if apiKey == "" || secretKey == "" || baseURL == "" {
+		log.Fatal("Error: BROKER_API_KEY, BROKER_SECRET_KEY, and BROKER_BASE_URL must be set in .env file or environment")
+	}
+
+	// Convert HTTP URL to WebSocket URL
+	wsURL := baseURL
+	if len(wsURL) > 8 && wsURL[:8] == "https://" {
+		wsURL = "wss://" + wsURL[8:] + "/ws/v1/stream"
+	} else if len(wsURL) > 7 && wsURL[:7] == "http://" {
+		wsURL = "ws://" + wsURL[7:] + "/ws/v1/stream"
+	} else {
+		wsURL = wsURL + "/ws/v1/stream"
+	}
 
 	// Create WebSocket client
 	wsClient := NewWSClient(apiKey, secretKey, wsURL)
@@ -71,7 +93,7 @@ func runWebSocketExample() {
 
 	// Test estimate
 	fmt.Println("💰 Testing estimate swap...")
-	err = wsClient.EstimateSwapSimple("100.00", "USDT", "ETH", []string{"binance", "gate"})
+	err = wsClient.EstimateSwapSimple("10.00", "USDT", "ETH", []string{"binance", "gate"})
 	if err != nil {
 		log.Printf("Failed to estimate swap: %v", err)
 	}

@@ -9,9 +9,9 @@ from broker_client import BrokerClient, APIError
 
 def main():
     # API keys (obtained from server)
-    api_key = "key"
-    secret_key = "secret"
-    base_url = "https://partner-api-dev.the-one.io"
+    api_key = "ak_xSaAYchtHqC0x1BbJOqYMAhBaoa1dS6BWMKPuC3WAKY"
+    secret_key = "K2pf_2mG2eBf20caJeYTj-wCLbsPcdxkg_fLf7jmN8OpZ8QePe12AcKxl05hxgPQ"
+    base_url = "https://partner-api.the-one.io"
 
     # Create API client
     client = BrokerClient(api_key, secret_key, base_url)
@@ -35,7 +35,7 @@ def main():
         try:
             estimate = client.estimate_swap(
                 from_asset="USDT",
-                to_asset="BTC", 
+                to_asset="XRP",
                 amount="10"
             )
             print("Estimate received:")
@@ -61,7 +61,7 @@ def main():
             try:
                 swap_response = client.swap(
                     from_asset="USDT",
-                    to_asset="BTC",
+                    to_asset="XRP",
                     amount="10",
                     account="test_account", # In real usage, need valid account
                     slippage_bps=30,

@@ -1,13 +1,28 @@
 import { BrokerWSClient } from './ws-client.js';
+import dotenv from 'dotenv';
+
+// Load environment variables from .env file
+dotenv.config();
 
 /**
  * Example usage of WebSocket client
  */
 async function runWebSocketExample() {
-    // API keys (obtained from server)
-    const apiKey = 'ak_X0sw1Dr97hcXkFsDM9nXbD2gn2ZkCIptjtpqQ-MvAnc';
-    const secretKey = 'L2pcViLs7uGdFZJd3wYKmnSgoSv-UYx8oF4c6lX95NSk3Ejm-T5eWproVlRcvQn1';
-    const wsURL = 'ws://localhost:8080/ws/v1/stream';
+    // Load API keys from environment variables
+    const apiKey = process.env.BROKER_API_KEY;
+    const secretKey = process.env.BROKER_SECRET_KEY;
+    const baseURL = process.env.BROKER_BASE_URL;
+
+    // Validate required environment variables
+    if (!apiKey || !secretKey || !baseURL) {
+        console.error('Error: BROKER_API_KEY, BROKER_SECRET_KEY, and BROKER_BASE_URL must be set in .env file or environment');
+        process.exit(1);
+    }
+
+    // Convert HTTP URL to WebSocket URL
+    const wsURL = baseURL.replace('https://', 'wss://').replace('http://', 'ws://') + '/ws/v1/stream';
+    
+    console.log(`Connecting to: ${wsURL}`);
 
     // Create WebSocket client
     const wsClient = new BrokerWSClient(apiKey, secretKey, wsURL);
@@ -31,6 +46,52 @@ async function runWebSocketExample() {
 
     wsClient.on('unsubscribed', (channel) => {
         console.log(`✅ Successfully unsubscribed from channel: ${channel}`);
+    });
+
+    // Store created order ID for subscription
+    let createdOrderId = null;
+
+    // Add response listener to handle operation results
+    wsClient.on('response', async (message) => {
+        if (message.op === 'estimate') {
+            console.log('💰 Estimate response received:');
+            console.log(JSON.stringify(message.data, null, 2));
+        } else if (message.op === 'balances') {
+            console.log('💼 Balances response received:');
+            console.log(JSON.stringify(message.data, null, 2));
+        } else if (message.op === 'swap') {
+            console.log('🔄 Swap response received:');
+            console.log(JSON.stringify(message.data, null, 2));
+            
+            // Subscribe to the created order channel for real-time updates
+            if (message.data && message.data.orderId) {
+                createdOrderId = message.data.orderId;
+                const orderChannel = `orders:${createdOrderId}`;
+                console.log(`\n📡 Subscribing to order channel: ${orderChannel}`);
+                
+                try {
+                    await wsClient.subscribe(orderChannel, (orderMessage) => {
+                        console.log(`\n🔔 Real-time order update for ${createdOrderId}:`);
+                        console.log(JSON.stringify(orderMessage.data, null, 2));
+                    });
+                    
+                    // Wait a bit and then check order status to see current state
+                    setTimeout(async () => {
+                        console.log(`\n📋 Checking order status for ${createdOrderId}...`);
+                        try {
+                            await wsClient.getOrderStatus(createdOrderId);
+                        } catch (error) {
+                            console.error('Failed to get order status:', error.message);
+                        }
+                    }, 1000);
+                } catch (error) {
+                    console.error('Failed to subscribe to order channel:', error.message);
+                }
+            }
+        } else if (message.op === 'order_status') {
+            console.log('📋 Order status response received:');
+            console.log(JSON.stringify(message.data, null, 2));
+        }
     });
 
     try {
@@ -64,7 +125,7 @@ async function runWebSocketExample() {
         
         // Test estimate
         console.log('💰 Testing estimate swap...');
-        await wsClient.estimateSwap('100.00', 'USDT', 'ETH');
+        await wsClient.estimateSwap('10.00', 'USDT', 'ETH');
         
         await new Promise(resolve => setTimeout(resolve, 1000));
 
@@ -72,17 +133,20 @@ async function runWebSocketExample() {
         console.log('💼 Getting account balances...');
         await wsClient.getBalances();
         
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 2000));
 
-        // Test order status
-        console.log('📋 Getting order status...');
-        await wsClient.getOrderStatus('ord_12345678');
-        
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        // Test swap (creates new order)
+        // Test swap (creates a real swap order)
         console.log('🔄 Testing swap operation...');
-        await wsClient.doSwap('100.00', 'USDT', 'ETH');
+        await wsClient.doSwap('10.00', 'USDT', 'TRX');
+        
+        // Wait for swap response to get order ID
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        
+        // Note: To test order status, uncomment below and use a real order ID from swap response
+        // The order ID will be shown in the swap response above
+        // console.log('📋 Getting order status...');
+        // await wsClient.getOrderStatus('your_order_id_from_swap_response');
+        // await new Promise(resolve => setTimeout(resolve, 1000));
 
         console.log('\n=== WebSocket client is running ===');
         console.log('Listening for real-time updates...');

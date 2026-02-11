@@ -2,3 +2,5 @@
 /client-js/node_modules/
 /client-js/.env
 /client-js/package-lock.json
+/client-go/.env
+/client-py/.env

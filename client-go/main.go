@@ -8,8 +8,10 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/joho/godotenv"
 	"log"
 	"math/rand"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -291,10 +293,20 @@ func (c *BrokerClient) GetOrderStatus(ctx context.Context, orderID string, clien
 
 // Example of client usage
 func main() {
-	// API keys (obtained from server)
-	apiKey := "key"
-	secretKey := "secret"
-	baseURL := "http://127.0.0.1:8080"
+	// Load environment variables from .env file
+	if err := godotenv.Load(); err != nil {
+		log.Println("Warning: .env file not found, using environment variables")
+	}
+
+	// Get API keys from environment variables
+	apiKey := os.Getenv("BROKER_API_KEY")
+	secretKey := os.Getenv("BROKER_SECRET_KEY")
+	baseURL := os.Getenv("BROKER_BASE_URL")
+
+	// Validate required environment variables
+	if apiKey == "" || secretKey == "" || baseURL == "" {
+		log.Fatal("Error: BROKER_API_KEY, BROKER_SECRET_KEY, and BROKER_BASE_URL must be set in .env file or environment")
+	}
 
 	// Create HTTP client
 	httpClient := NewDefaultHTTPClient()
@@ -316,7 +328,7 @@ func main() {
 	// Example 2: Swap estimation
 	fmt.Println("\n=== Swap estimation ===")
 	estimateReq := &EstimateRequestHTTP{
-		From:   "TRX",
+		From:   "USDC",
 		To:     "USDT",
 		Amount: "10",
 		Filter: []string{"binance", "gate"}, // Use specific liquidity sources

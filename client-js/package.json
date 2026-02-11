@@ -17,6 +17,7 @@
     "swap"
   ],
   "dependencies": {
+    "dotenv": "^16.3.1",
     "node-fetch": "^3.3.2",
     "ws": "^8.14.2"
   },

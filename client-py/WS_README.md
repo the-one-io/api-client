@@ -2,6 +2,12 @@
 
 WebSocket client for TheOne Trading API in Python with asynchronous processing, authentication and real-time support.
 
+> 📖 **Related Documentation:**
+> - [Python REST API Client](./README.md) - REST API documentation
+> - [Main README](../README.md) - Overview of all clients
+> - [Go WebSocket](../client-go/WS_README.md) - Go WebSocket documentation
+> - [JavaScript WebSocket](../client-js/WS_README.md) - JavaScript WebSocket documentation
+
 ## Installation
 
 ```bash

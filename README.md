@@ -240,14 +240,14 @@ For API testing, it's recommended to:
 
 ### Test Environment
 ```
-Base URL: https://partner-api-dev.the-one.io
+Base URL: https://partner-api.the-one.io
 Network: Testnet
 Minimum amount: 0.001
 ```
 
 ## Support and Documentation
 
-- **API Documentation**: [Swagger UI](https://partner-api-dev.the-one.io/docs)
+- **API Documentation**: [Swagger UI](https://partner-api.the-one.io/swagger/)
 - **OpenAPI Spec**: `docs/swagger.yaml`
 - **Postman Collection**: Available on request
 - **Support**: Through GitLab issues

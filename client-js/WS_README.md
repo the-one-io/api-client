@@ -2,6 +2,12 @@
 
 WebSocket client for TheOne Trading API in JavaScript/Node.js with authentication and real-time support.
 
+> 📖 **Related Documentation:**
+> - [JavaScript REST API Client](./README.md) - REST API documentation
+> - [Main README](../README.md) - Overview of all clients
+> - [Go WebSocket](../client-go/WS_README.md) - Go WebSocket documentation
+> - [Python WebSocket](../client-py/WS_README.md) - Python WebSocket documentation
+
 ## Installation
 
 ```bash

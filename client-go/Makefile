@@ -7,15 +7,21 @@ GO_FILES := $(shell find . -type f -name '*.go')
 .PHONY: build run run-ws deps clean build-all build-windows build-macos build-linux
 
 deps: ## Download dependencies
+	@echo "📦 Downloading dependencies..."
 	@go mod download
 	@go mod tidy
-	@go mod vendor
 
-run: ## Run the REST API client example
-	go run  http_client.go main.go
+run: deps ## Run the REST API client example
+	@echo "🚀 Running REST API client example..."
+	@CGO_ENABLED=0 go build -o ./broker-rest-client main.go http_client.go
+	@./broker-rest-client
+	@rm -f ./broker-rest-client
 
-run-ws: ## Run the WebSocket client example
-	go run ws_client.go ws_example.go ws_main.go
+run-ws: deps ## Run the WebSocket client example
+	@echo "🌐 Running WebSocket client example..."
+	@CGO_ENABLED=0 go build -o ./broker-ws-client ws_main.go ws_client.go ws_example.go
+	@./broker-ws-client
+	@rm -f ./broker-ws-client
 
 clean:
 	@echo "🧹 Cleaning build directory..."

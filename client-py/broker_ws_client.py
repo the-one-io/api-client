@@ -41,6 +41,7 @@ class BrokerWSClient:
         self.max_reconnect_attempts = 5
         self.reconnect_delay = 1.0
         self.running = False
+        self.response_handler = None
         
         # Setup logging
         self.logger = logging.getLogger(__name__)
@@ -279,6 +280,17 @@ class BrokerWSClient:
                     self.logger.error(f"Unsubscribe failed for {channel}: {data['error']}")
                 else:
                     self.logger.info(f"Successfully unsubscribed from channel: {channel}")
+                    
+            # Handle operation responses (estimate, balances, swap, order_status)
+            # These need to be handled by application, so trigger response handler
+            if hasattr(self, 'response_handler') and self.response_handler:
+                try:
+                    if asyncio.iscoroutinefunction(self.response_handler):
+                        await self.response_handler(data)
+                    else:
+                        self.response_handler(data)
+                except Exception as e:
+                    self.logger.error(f"Error in response handler: {e}")
             return
             
         # Handle data messages

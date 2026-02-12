@@ -25,15 +25,25 @@ venv:
 	@echo "Creating virtual environment..."
 	$(PYTHON) -m venv $(VENV_DIR)
 
-# Run the example
+# Run the REST API example
 run:
-	@echo "Running Python client example..."
+	@echo "Running Python client example (REST API)..."
 	$(PYTHON) example.py
+
+# Run the WebSocket example
+run-ws:
+	@echo "Running WebSocket client example..."
+	$(PYTHON) ws_example.py
 
 # Run with virtual environment
 run-venv: venv install-venv
 	@echo "Running Python client example in virtual environment..."
 	./$(VENV_DIR)/bin/python example.py
+
+# Run WebSocket with virtual environment
+run-ws-venv: venv install-venv
+	@echo "Running WebSocket client example in virtual environment..."
+	./$(VENV_DIR)/bin/python ws_example.py
 
 # Clean virtual environment and cache
 clean:
@@ -109,8 +119,10 @@ help:
 	@echo "  install     - Install dependencies"
 	@echo "  install-venv - Install dependencies in virtual environment"
 	@echo "  venv        - Create virtual environment"
-	@echo "  run         - Run the Python client example"
-	@echo "  run-venv    - Run the example in virtual environment"
+	@echo "  run         - Run the REST API client example"
+	@echo "  run-ws      - Run the WebSocket client example"
+	@echo "  run-venv    - Run the REST API example in virtual environment"
+	@echo "  run-ws-venv - Run the WebSocket example in virtual environment"
 	@echo "  clean       - Remove virtual environment and cache files"
 	@echo "  test        - Run tests with pytest"
 	@echo "  lint        - Lint code with flake8"
@@ -123,7 +135,9 @@ help:
 	@echo "  help        - Show this help message"
 	@echo ""
 	@echo "Quick start:"
-	@echo "  make install && make run"
+	@echo "  make install && make run       # REST API example"
+	@echo "  make install && make run-ws    # WebSocket example"
 	@echo ""
 	@echo "With virtual environment:"
-	@echo "  make run-venv"
+	@echo "  make run-venv                  # REST API example"
+	@echo "  make run-ws-venv               # WebSocket example"

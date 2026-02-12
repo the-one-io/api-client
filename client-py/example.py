@@ -3,15 +3,25 @@
 Example of using TheOne Trading API Python client
 """
 
+import os
 import time
+from dotenv import load_dotenv
 from broker_client import BrokerClient, APIError
+
+# Load environment variables from .env file
+load_dotenv()
 
 
 def main():
-    # API keys (obtained from server)
-    api_key = "ak_xSaAYchtHqC0x1BbJOqYMAhBaoa1dS6BWMKPuC3WAKY"
-    secret_key = "K2pf_2mG2eBf20caJeYTj-wCLbsPcdxkg_fLf7jmN8OpZ8QePe12AcKxl05hxgPQ"
-    base_url = "https://partner-api.the-one.io"
+    # Load API keys from environment variables
+    api_key = os.getenv('BROKER_API_KEY')
+    secret_key = os.getenv('BROKER_SECRET_KEY')
+    base_url = os.getenv('BROKER_BASE_URL')
+
+    # Validate required environment variables
+    if not api_key or not secret_key or not base_url:
+        print("Error: BROKER_API_KEY, BROKER_SECRET_KEY, and BROKER_BASE_URL must be set in .env file or environment")
+        return
 
     # Create API client
     client = BrokerClient(api_key, secret_key, base_url)
@@ -71,23 +81,62 @@ def main():
                 print(f"  Order ID: {swap_response.get('orderId', 'N/A')}")
                 print(f"  Status: {swap_response.get('status', 'N/A')}")
 
-                # Example 4: Check order status
-                time.sleep(1)  # Wait 1 second
+                # Example 4: Check order status cyclically (up to 5 attempts)
                 print("\n=== Checking Order Status ===")
                 
-                try:
-                    order_status = client.get_order_status(swap_response['orderId'])
-                    print("Order status:")
-                    print(f"  Order ID: {order_status.get('orderId', 'N/A')}")
-                    print(f"  Status: {order_status.get('status', 'N/A')}")
-                    print(f"  Filled Out: {order_status.get('filledOut', 'N/A')}")
-                    print(f"  TX Hash: {order_status.get('txHash', 'N/A')}")
-                    print(f"  Updated At: {order_status.get('updatedAt', 'N/A')}")
+                max_attempts = 5
+                attempt = 0
+                order_status = None
+                final_status = None
+                
+                while attempt < max_attempts:
+                    attempt += 1
+                    print(f"\nAttempt {attempt}/{max_attempts}:")
                     
-                except APIError as e:
-                    print(f"Error getting order status: {e}")
-                except Exception as e:
-                    print(f"Network error getting order status: {e}")
+                    try:
+                        order_status = client.get_order_status(swap_response['orderId'])
+                        print("Order status:")
+                        print(f"  Order ID: {order_status.get('orderId', 'N/A')}")
+                        print(f"  Status: {order_status.get('status', 'N/A')}")
+                        print(f"  Filled Out: {order_status.get('filledOut', 'N/A')}")
+                        print(f"  TX Hash: {order_status.get('txHash', 'N/A')}")
+                        print(f"  Updated At: {order_status.get('updatedAt', 'N/A')}")
+                        
+                        # Get the status from response
+                        final_status = order_status.get('status', '')
+                        
+                        # Check if status is filled or partial_filled (case-insensitive)
+                        status_upper = final_status.upper()
+                        if status_upper == 'FILLED' or status_upper == 'PARTIAL_FILLED':
+                            print(f"\n✓ Order {final_status}! Stopping status checks.")
+                            break
+                        
+                        # If not final status and not last attempt, wait before next check
+                        if attempt < max_attempts:
+                            print(f"Status is '{final_status}', waiting 2 seconds before next check...")
+                            time.sleep(2)
+                            
+                    except APIError as e:
+                        print(f"Error getting order status: {e}")
+                        
+                        # If not last attempt, wait before retry
+                        if attempt < max_attempts:
+                            print("Waiting 2 seconds before retry...")
+                            time.sleep(2)
+                    except Exception as e:
+                        print(f"Network error getting order status: {e}")
+                        
+                        # If not last attempt, wait before retry
+                        if attempt < max_attempts:
+                            print("Waiting 2 seconds before retry...")
+                            time.sleep(2)
+                
+                # Summary after all attempts
+                final_status_upper = final_status.upper() if final_status else ''
+                if attempt >= max_attempts and final_status_upper not in ['FILLED', 'PARTIAL_FILLED']:
+                    print(f"\n⚠ Maximum attempts ({max_attempts}) reached. Final status: {final_status or 'unknown'}")
+                elif final_status_upper in ['FILLED', 'PARTIAL_FILLED']:
+                    print(f"\n✓ Order successfully {final_status} after {attempt} attempt(s).")
                     
             except APIError as e:
                 print(f"Error executing swap: {e}")

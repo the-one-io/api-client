@@ -1,5 +1,13 @@
 # TheOne Trading API - Client Examples
 
+## 📚 Documentation
+
+- [API Documentation (EN)](./docs/API_DOCUMENTATION_EN.md)
+- [Authentication Guide (EN)](./docs/AUTHENTICATION_GUIDE_EN.md)
+- [WebSocket Documentation (EN)](./docs/WEBSOCKET_DOCUMENTATION_EN.md)
+
+---
+
 This directory contains client examples for the TheOne Trading API in various programming languages.
 
 ## Available Clients

@@ -49,7 +49,7 @@ WebSocket authentication uses the same HMAC-SHA256 algorithm as REST API:
 WS\n/ws/v1/stream\n<TIMESTAMP>\n<NONCE>\n<EMPTY_BODY_HASH>
 ```
 
-**Приклад (JavaScript)**:
+**Example (JavaScript)**:
 ```javascript
 const crypto = require('crypto');
 
@@ -83,7 +83,7 @@ const authMsg = authenticateWebSocket('your_api_key', 'your_secret');
 ws.send(JSON.stringify(authMsg));
 ```
 
-**Приклад (Python)**:
+**Example (Python)**:
 ```python
 import hashlib
 import hmac
@@ -120,7 +120,7 @@ auth_msg = authenticate_websocket('your_api_key', 'your_secret')
 ws.send(json.dumps(auth_msg))
 ```
 
-**Приклад (Go)**:
+**Example (Go)**:
 ```go
 import (
     "crypto/hmac"
@@ -273,7 +273,7 @@ Receive real-time balance updates.
 
 Receive real-time updates about specific order status.
 
-**Підписка**:
+**Subscribe**:
 ```json
 {
   "op": "subscribe",
@@ -281,7 +281,7 @@ Receive real-time updates about specific order status.
 }
 ```
 
-**Повідомлення про оновлення**:
+**Update message**:
 ```json
 {
   "ch": "orders:ord_123456",
@@ -312,12 +312,12 @@ WebSocket API supports executing trading operations with authentication of each 
 
 For operations (estimate, swap, order_status, balances), each message must be signed:
 
-**Канонічний рядок**:
+**Canonical string**:
 ```
 WS\n/ws/v1/<OPERATION>\n<TIMESTAMP>\n<NONCE>\n<DATA_BODY_SHA256>
 ```
 
-**Приклад генерації підпису (JavaScript)**:
+**Example sign generation (JavaScript)**:
 ```javascript
 function signMessage(secret, operation, data, timestamp, nonce) {
   const dataStr = JSON.stringify(data);
@@ -351,7 +351,7 @@ function signMessage(secret, operation, data, timestamp, nonce) {
 }
 ```
 
-**Відповідь**:
+**Response**:
 ```json
 {
   "op": "estimate",
@@ -393,7 +393,7 @@ function signMessage(secret, operation, data, timestamp, nonce) {
 }
 ```
 
-**Відповідь**:
+**Response**:
 ```json
 {
   "op": "swap",
@@ -419,7 +419,7 @@ function signMessage(secret, operation, data, timestamp, nonce) {
 }
 ```
 
-**Відповідь**:
+**Response**:
 ```json
 {
   "op": "order_status",
@@ -446,7 +446,7 @@ function signMessage(secret, operation, data, timestamp, nonce) {
 }
 ```
 
-**Відповідь**:
+**Response**:
 ```json
 {
   "op": "balances",
